@@ -23,6 +23,8 @@ RUN npx prisma generate
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV CI_BUILD_MODE 1
+ENV DOCKER_BUILD 1
 
 # Build the app
 RUN npm run build
@@ -33,8 +35,6 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV CI_BUILD_MODE 1
-ENV DOCKER_BUILD 1
 
 # Install all dependencies to satisfy entrypoint requirements
 COPY package.json package-lock.json* ./
