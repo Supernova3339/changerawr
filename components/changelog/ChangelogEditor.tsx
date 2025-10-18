@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState, useCallback, useRef} from 'react';
-import {useRouter} from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {useMutation, useQuery, useInfiniteQuery, useQueryClient} from '@tanstack/react-query';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
@@ -7,7 +7,7 @@ import {Button} from '@/components/ui/button';
 import {useDebounce} from 'use-debounce';
 import {toast} from "@/hooks/use-toast";
 import EditorHeader from '@/components/changelog/editor/EditorHeader';
-import {Loader2, RefreshCw, Save} from 'lucide-react';
+import {Loader2, RefreshCw, Save, ExternalLink} from 'lucide-react';
 import {Alert, AlertDescription, AlertActions, AlertTitle} from '@/components/ui/alert';
 import {motion, AnimatePresence} from 'framer-motion';
 import {cn} from '@/lib/utils';
@@ -84,6 +84,26 @@ interface EditorStatus {
 interface SaveError extends Error {
     status?: number;
     details?: unknown;
+}
+
+// WWC Protocol types - for receiving data from external sources
+interface WWCProtocolData {
+    serverUrl?: string;
+    instanceType?: 'changerawr';
+    title?: string;
+    content?: string;
+    version?: string;
+    tags?: string[];
+    projectId?: string;
+    entryId?: string;
+    action?: 'edit' | 'create' | 'view';
+}
+
+interface WWCProtocolState {
+    data: WWCProtocolData | null;
+    isChangerawrInstance: boolean;
+    serverUrl: string | null;
+    appliedAt: number | null;
 }
 
 // ===== Constants =====
@@ -179,11 +199,20 @@ export function ChangelogEditor({
                                 }: ChangelogEditorProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
+    const searchParams = useSearchParams();
 
     // ===== Refs =====
     const initialValuesApplied = useRef(false);
     const lastSavedStateRef = useRef<Omit<EditorState, 'isPublished' | 'hasUnsavedChanges' | 'hasVersionConflict'> | null>(null);
     const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // ===== WWC Protocol State =====
+    const [wwcState, setWwcState] = useState<WWCProtocolState>({
+        data: null,
+        isChangerawrInstance: false,
+        serverUrl: null,
+        appliedAt: null
+    });
 
     // ===== State Management =====
     const [editorState, setEditorState] = useState<EditorState>(() => ({
@@ -207,6 +236,67 @@ export function ChangelogEditor({
 
     // Debounced state for autosave
     const [debouncedState] = useDebounce(editorState, DEBOUNCE_TIME);
+
+    // ===== WWC Protocol Data Loading =====
+    useEffect(() => {
+        const loadWWCData = () => {
+            // Check URL parameters for WWC protocol data
+            const urlTitle = searchParams?.get('title');
+            const urlContent = searchParams?.get('content');
+            const urlVersion = searchParams?.get('version');
+            const urlTags = searchParams?.get('tags');
+            const urlServerUrl = searchParams?.get('serverUrl');
+            const urlInstanceType = searchParams?.get('instanceType');
+
+            const hasUrlData = !!(urlTitle || urlContent || urlVersion || urlTags);
+
+            if (hasUrlData) {
+                const mergedData: WWCProtocolData = {
+                    title: urlTitle || '',
+                    content: urlContent || '',
+                    version: urlVersion || '',
+                    tags: urlTags ? urlTags.split(',') : [],
+                    serverUrl: urlServerUrl || undefined,
+                    instanceType: (urlInstanceType || 'changerawr') as 'changerawr',
+                    projectId: projectId,
+                    entryId: entryId,
+                    action: 'create'
+                };
+
+                setWwcState({
+                    data: mergedData,
+                    isChangerawrInstance: mergedData.instanceType === 'changerawr',
+                    serverUrl: mergedData.serverUrl || null,
+                    appliedAt: Date.now()
+                });
+
+                // Apply to editor state
+                setEditorState(prev => ({
+                    ...prev,
+                    title: mergedData.title || prev.title,
+                    content: mergedData.content || prev.content,
+                    version: mergedData.version || prev.version,
+                    hasUnsavedChanges: true
+                }));
+
+                // Show notification
+                const sourceText = mergedData.serverUrl
+                    ? `from ${mergedData.serverUrl}`
+                    : 'from external source';
+
+                toast({
+                    title: "External content loaded",
+                    description: `Content has been loaded ${sourceText}.`,
+                    duration: 4000
+                });
+            }
+        };
+
+        // Only run once when component mounts
+        if (!wwcState.appliedAt) {
+            loadWWCData();
+        }
+    }, [searchParams, projectId, entryId, wwcState.appliedAt]);
 
     // ===== Data Fetching =====
 
@@ -369,6 +459,46 @@ export function ChangelogEditor({
         };
     }, [initialData, tagsData?.pages]);
 
+    // ===== Process WWC Tags =====
+    const processWWCTags = useCallback((wwcTags: string[], availableTags: Tag[]): Tag[] => {
+        if (!wwcTags || wwcTags.length === 0) return [];
+
+        const tagMap = new Map<string, Tag>();
+        availableTags.forEach(tag => {
+            tagMap.set(tag.name.toLowerCase(), tag);
+        });
+
+        return wwcTags.map(tagName => {
+            const normalizedName = tagName.trim();
+            const lowerName = normalizedName.toLowerCase();
+
+            // Check if tag exists
+            if (tagMap.has(lowerName)) {
+                return tagMap.get(lowerName)!;
+            }
+
+            // Create new tag
+            return {
+                id: `external-${lowerName}`,
+                name: normalizedName
+            };
+        });
+    }, []);
+
+    // Apply WWC Tags when available tags are loaded
+    useEffect(() => {
+        if (wwcState.data?.tags && availableTags.length > 0 && !editorState.tags.length) {
+            const processedTags = processWWCTags(wwcState.data.tags, availableTags);
+            if (processedTags.length > 0) {
+                setEditorState(prev => ({
+                    ...prev,
+                    tags: processedTags,
+                    hasUnsavedChanges: true
+                }));
+            }
+        }
+    }, [wwcState.data?.tags, availableTags, editorState.tags.length, processWWCTags]);
+
     // ===== Save Mutation =====
     const saveEntry = useMutation({
         mutationFn: async (data: Omit<EditorState, 'isPublished' | 'hasUnsavedChanges' | 'hasVersionConflict'>) => {
@@ -377,7 +507,7 @@ export function ChangelogEditor({
                 : `/api/projects/${projectId}/changelog`;
 
             const tagData = data.tags.map(tag =>
-                tag.id.startsWith('default-')
+                tag.id.startsWith('default-') || tag.id.startsWith('external-')
                     ? {name: tag.name}
                     : {id: tag.id, name: tag.name}
             );
@@ -447,6 +577,54 @@ export function ChangelogEditor({
             hasVersionConflict: hasConflict
         }));
     }, []);
+
+    // ===== WWC URL Generation =====
+    const generateWWCUrl = useCallback(() => {
+        const baseUrl = 'wwc://open';
+        const url = new URL(baseUrl);
+
+        // Add path segments
+        if (projectId) {
+            url.pathname = `/${projectId}`;
+            if (entryId) {
+                url.pathname += `/${entryId}`;
+            }
+        }
+
+        // Add query parameters
+        url.searchParams.set('serverUrl', window.location.origin);
+        url.searchParams.set('instanceType', 'changerawr');
+
+        if (editorState.title) {
+            url.searchParams.set('title', encodeURIComponent(editorState.title));
+        }
+        if (editorState.content) {
+            url.searchParams.set('content', encodeURIComponent(editorState.content));
+        }
+        if (editorState.version) {
+            url.searchParams.set('version', encodeURIComponent(editorState.version));
+        }
+        if (editorState.tags && editorState.tags.length > 0) {
+            const tagsString = editorState.tags.map(tag => encodeURIComponent(tag.name)).join(',');
+            url.searchParams.set('tags', tagsString);
+        }
+
+        const wwcUrl = url.toString();
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(wwcUrl).then(() => {
+            toast({
+                title: "WWC URL generated",
+                description: "The protocol URL has been copied to your clipboard.",
+            });
+        }).catch(() => {
+            toast({
+                title: "Copy failed",
+                description: "Could not copy to clipboard. Please copy manually: " + wwcUrl,
+                variant: "destructive"
+            });
+        });
+    }, [editorState, projectId, entryId]);
 
     // ===== Save Logic =====
     const performSave = useCallback(async (isManual = false) => {
@@ -689,13 +867,27 @@ export function ChangelogEditor({
             }
         }
     }, [initialData, isNewChangelog, mappedDefaultTags, initialTitle, initialContent, initialVersion]);
-
-    // ===== Export Handler =====
+// ===== Export Handler =====
     const handleExport = useCallback(() => {
         if (!editorState.content) return;
 
         const element = document.createElement('a');
-        const file = new Blob([editorState.content], {type: 'text/markdown'});
+        let content = editorState.content;
+
+        // Add metadata comment if from external source
+        if (wwcState.data?.serverUrl) {
+            const metadata = `<!-- 
+Generated via WWC Protocol
+Source: ${wwcState.data.serverUrl}
+Instance Type: ${wwcState.data.instanceType}
+Generated: ${new Date().toISOString()}
+-->
+
+`;
+            content = metadata + content;
+        }
+
+        const file = new Blob([content], { type: 'text/markdown' });
         element.href = URL.createObjectURL(file);
 
         const safeTitle = editorState.title
@@ -703,12 +895,13 @@ export function ChangelogEditor({
             : 'changelog_entry';
         const version = editorState.version ? `_${editorState.version}` : '';
         const timestamp = new Date().toISOString().slice(0, 10);
+        const source = wwcState.data?.serverUrl ? '_external' : '';
 
-        element.download = `${safeTitle}${version}_${timestamp}.md`;
+        element.download = `${safeTitle}${version}${source}_${timestamp}.md`;
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
-    }, [editorState.content, editorState.title, editorState.version]);
+    }, [editorState.content, editorState.title, editorState.version, wwcState.data]);
 
     // ===== Loading States =====
     const isLoading = isInitialDataLoading || isTagsLoading || isAISettingsLoading;
@@ -783,6 +976,40 @@ export function ChangelogEditor({
             />
 
             <div className="container py-6 space-y-6">
+                {/* External Content Alert */}
+                <AnimatePresence>
+                    {wwcState.data?.serverUrl && (
+                        <motion.div
+                            initial={{opacity: 0, y: -20}}
+                            animate={{opacity: 1, y: 0}}
+                            exit={{opacity: 0, y: -20}}
+                            transition={{duration: 0.3}}
+                        >
+                            <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+                                <ExternalLink className="h-4 w-4" />
+                                <AlertTitle>External Content Loaded</AlertTitle>
+                                <AlertDescription>
+                                    Content received from <strong>{wwcState.data.serverUrl}</strong> via WWC protocol.
+                                    {wwcState.data.instanceType === 'changerawr' && (
+                                        <span className="block mt-1 text-sm">
+                                            Source: Changerawr instance
+                                        </span>
+                                    )}
+                                </AlertDescription>
+                                <AlertActions>
+                                    <Button
+                                        onClick={generateWWCUrl}
+                                        size="sm"
+                                        variant="outline"
+                                    >
+                                        Generate Share URL
+                                    </Button>
+                                </AlertActions>
+                            </Alert>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* Save Error Alert */}
                 <AnimatePresence>
                     {status.lastSaveError && !status.isSaving && (

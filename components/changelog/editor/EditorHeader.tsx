@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {Button} from '@/components/ui/button';
-import {AlertTriangle, CheckCircle2, ChevronLeft, Clock, Edit3, Loader2, Save, Star} from 'lucide-react';
+import {AlertTriangle, CheckCircle2, ChevronLeft, Clock, Edit3, Loader2, Save, Star, ExternalLink} from 'lucide-react';
 import {Separator} from '@/components/ui/separator';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {Alert, AlertDescription} from '@/components/ui/alert';
@@ -15,6 +15,7 @@ import TagSelector from './TagSelector';
 import VersionSelector from './VersionSelector';
 import AITitleGenerator from './AITitleGenerator';
 import {useBookmarks} from "@/hooks/useBookmarks";
+import {toast} from "@/hooks/use-toast";
 
 // ===== Type Definitions =====
 
@@ -130,6 +131,90 @@ function BookmarkButton({entryId, projectId, title}: BookmarkButtonProps) {
                 </TooltipContent>
             </Tooltip>
         </TooltipProvider>
+    );
+}
+
+// ===== WWC Open Button Component =====
+
+interface WWCOpenButtonProps {
+    title: string;
+    content: string;
+    version: string;
+    tags: Tag[];
+    projectId: string;
+    entryId?: string;
+}
+
+function WWCOpenButton({title, content, version, tags, projectId, entryId}: WWCOpenButtonProps) {
+    const handleOpenInWWC = useCallback(() => {
+        try {
+            // Generate WWC protocol URL
+            const baseUrl = 'wwc://open';
+            const url = new URL(baseUrl);
+
+            // Add path segments
+            if (projectId) {
+                url.pathname = `/${projectId}`;
+                if (entryId) {
+                    url.pathname += `/${entryId}`;
+                }
+            }
+
+            // Add query parameters
+            url.searchParams.set('serverUrl', window.location.origin);
+            url.searchParams.set('instanceType', 'changerawr');
+            url.searchParams.set('action', entryId ? 'edit' : 'create');
+
+            if (title) {
+                url.searchParams.set('title', encodeURIComponent(title));
+            }
+            if (content) {
+                url.searchParams.set('content', encodeURIComponent(content));
+            }
+            if (version) {
+                url.searchParams.set('version', encodeURIComponent(version));
+            }
+            if (tags && tags.length > 0) {
+                const tagsString = tags.map(tag => encodeURIComponent(tag.name)).join(',');
+                url.searchParams.set('tags', tagsString);
+            }
+
+            const wwcUrl = url.toString();
+
+            // Try to open the protocol URL directly
+            window.location.href = wwcUrl;
+
+            toast({
+                title: "Opening in WriteWithCum",
+                description: "If the app doesn't open, please ensure WriteWithCum is installed.",
+                duration: 3000
+            });
+        } catch (error) {
+            console.error('Failed to generate WWC URL:', error);
+            toast({
+                title: "Failed to open",
+                description: "Could not generate the protocol URL to open in WriteWithCum.",
+                variant: "destructive"
+            });
+        }
+    }, [title, content, version, tags, projectId, entryId]);
+
+    // Only show if there's meaningful content to share
+    const hasContent = title.trim() || content.trim() || version.trim();
+    if (!hasContent) {
+        return null;
+    }
+
+    return (
+        <Button
+            variant="outline"
+            size="sm"
+            onClick={handleOpenInWWC}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors border-dashed"
+        >
+            <ExternalLink className="h-3.5 w-3.5"/>
+            <span className="text-xs font-medium">Open in WWC</span>
+        </Button>
     );
 }
 
@@ -575,6 +660,16 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                                 </AnimatePresence>
 
                                 <div className="flex items-center gap-2">
+                                    {/* WWC Open Button */}
+                                    <WWCOpenButton
+                                        title={title}
+                                        content={content}
+                                        version={version}
+                                        tags={selectedTags}
+                                        projectId={projectId}
+                                        entryId={entryId}
+                                    />
+
                                     {SaveButton}
 
                                     {entryId && (

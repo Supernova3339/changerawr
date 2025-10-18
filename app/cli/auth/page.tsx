@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Terminal, ExternalLink } from 'lucide-react';
+import {useEffect, useState, Suspense} from 'react';
+import {useSearchParams} from 'next/navigation';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {CheckCircle, Terminal, ExternalLink} from 'lucide-react';
 
 interface AuthState {
     status: 'checking' | 'authenticated' | 'unauthenticated' | 'generating' | 'success' | 'error';
@@ -24,7 +24,7 @@ interface AuthState {
 function CLIAuthContent() {
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callback');
-    const [authState, setAuthState] = useState<AuthState>({ status: 'checking' });
+    const [authState, setAuthState] = useState<AuthState>({status: 'checking'});
 
     const isChecking = authState.status === 'checking';
     const isAuthenticated = authState.status === 'authenticated';
@@ -32,6 +32,10 @@ function CLIAuthContent() {
     const isGenerating = authState.status === 'generating';
     const isSuccess = authState.status === 'success';
     const isError = authState.status === 'error';
+
+    // Determine branding based on callback URL
+    const isWriteWithCum = callbackUrl?.startsWith('wwc://');
+    const appName = isWriteWithCum ? 'WriteWithCum' : 'Changerawr CLI';
 
     useEffect(() => {
         checkAuthenticationStatus();
@@ -49,7 +53,7 @@ function CLIAuthContent() {
                     callbackUrl: callbackUrl || undefined
                 });
             } else {
-                setAuthState({ status: 'unauthenticated' });
+                setAuthState({status: 'unauthenticated'});
             }
         } catch {
             setAuthState({
@@ -68,7 +72,7 @@ function CLIAuthContent() {
             return;
         }
 
-        setAuthState(prev => ({ ...prev, status: 'generating' }));
+        setAuthState(prev => ({...prev, status: 'generating'}));
 
         try {
             const response = await fetch('/api/auth/cli/generate', {
@@ -76,11 +80,11 @@ function CLIAuthContent() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ callbackUrl }),
+                body: JSON.stringify({callbackUrl}),
             });
 
             if (response.ok) {
-                const { code, expires } = await response.json();
+                const {code, expires} = await response.json();
 
                 const redirectUrl = new URL(callbackUrl);
                 redirectUrl.searchParams.set('code', code);
@@ -123,11 +127,11 @@ function CLIAuthContent() {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                        <Terminal className="w-6 h-6 text-blue-600" />
+                        <Terminal className="w-6 h-6 text-blue-600"/>
                     </div>
-                    <CardTitle>Changerawr CLI Authorization</CardTitle>
+                    <CardTitle>{appName} Authorization</CardTitle>
                     <CardDescription>
-                        Authorize the Changerawr CLI to access your account
+                        Authorize {appName} to access your account
                     </CardDescription>
                 </CardHeader>
 
@@ -144,7 +148,7 @@ function CLIAuthContent() {
                         <>
                             <Alert>
                                 <AlertDescription>
-                                    You need to be logged in to authorize the CLI.
+                                    You need to be logged in to authorize {appName}.
                                 </AlertDescription>
                             </Alert>
                             <Button
@@ -152,7 +156,7 @@ function CLIAuthContent() {
                                 className="w-full"
                                 size="lg"
                             >
-                                <ExternalLink className="w-4 h-4 mr-2" />
+                                <ExternalLink className="w-4 h-4 mr-2"/>
                                 Login to Changerawr
                             </Button>
                         </>
@@ -161,7 +165,7 @@ function CLIAuthContent() {
                     {isAuthenticated && authState.user && (
                         <>
                             <div className="text-center py-4">
-                                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2"/>
                                 <p className="font-medium">Logged in as</p>
                                 <p className="text-sm text-gray-600">{authState.user.email}</p>
                             </div>
@@ -170,7 +174,7 @@ function CLIAuthContent() {
                                 <>
                                     <Alert>
                                         <AlertDescription>
-                                            The Changerawr CLI is requesting access to your account.
+                                            {appName} is requesting access to your account.
                                             Click authorize to generate a temporary authentication code.
                                         </AlertDescription>
                                     </Alert>
@@ -187,14 +191,14 @@ function CLIAuthContent() {
                                                 Generating Code...
                                             </>
                                         ) : (
-                                            'Authorize CLI Access'
+                                            `Authorize ${appName} Access`
                                         )}
                                     </Button>
                                 </>
                             ) : (
                                 <Alert>
                                     <AlertDescription>
-                                        No callback URL provided. Please use the CLI to initiate authentication.
+                                        No callback URL provided. Please use {appName} to initiate authentication.
                                     </AlertDescription>
                                 </Alert>
                             )}
@@ -211,10 +215,10 @@ function CLIAuthContent() {
 
                     {isSuccess && (
                         <div className="text-center py-4">
-                            <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                            <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2"/>
                             <p className="font-medium text-green-600">Authorization Successful!</p>
                             <p className="text-sm text-gray-600 mt-2">
-                                Redirecting to CLI... You can close this window if it doesn&apos;t redirect
+                                Redirecting to {appName}... You can close this window if it doesn&apos;t redirect
                                 automatically.
                             </p>
                         </div>
@@ -239,7 +243,7 @@ function CLIAuthContent() {
 
                     <div className="text-center pt-4 border-t">
                         <p className="text-xs text-gray-500">
-                            This will give the CLI access to your Changerawr projects.
+                            This will give {appName} access to your Changerawr projects.
                             You can revoke this access at any time from your account settings.
                         </p>
                     </div>
@@ -256,9 +260,9 @@ function CLIAuthLoading() {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                        <Terminal className="w-6 h-6 text-blue-600" />
+                        <Terminal className="w-6 h-6 text-blue-600"/>
                     </div>
-                    <CardTitle>Changerawr CLI Authorization</CardTitle>
+                    <CardTitle>Authorization</CardTitle>
                     <CardDescription>
                         Loading...
                     </CardDescription>
@@ -278,8 +282,8 @@ function CLIAuthLoading() {
 // Main component with Suspense boundary
 export default function CLIAuthPage() {
     return (
-        <Suspense fallback={<CLIAuthLoading />}>
-            <CLIAuthContent />
+        <Suspense fallback={<CLIAuthLoading/>}>
+            <CLIAuthContent/>
         </Suspense>
     );
 }
