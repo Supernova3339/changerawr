@@ -19,6 +19,7 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
+    "@changerawr/markdown": "^1.1.5",
     "@faker-js/faker": "^9.5.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",

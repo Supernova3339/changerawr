@@ -23,6 +23,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { UpdateIndicatorBadge } from '@/components/UpdateIndicatorBadge';
 
 const tabs = [
     {
@@ -133,21 +134,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <h1 className="text-2xl font-bold mb-4">Admin</h1>
                         <nav className="flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0">
                             {tabs.map(({ id, label, icon: Icon, path }) => (
-                                <Link
-                                    key={id}
-                                    href={path}
-                                    className={`
-                                        flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
-                                        ${pathname && new RegExp(tabs.find(t => t.id === id)?.pattern || '').test(pathname)
-                                        ? 'bg-secondary'
-                                        : 'hover:bg-secondary/50'}
-                                        text-foreground
-                                        whitespace-nowrap
-                                    `}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {label}
-                                </Link>
+                                <div key={id} className="flex items-center gap-2">
+                                    <Link
+                                        href={path}
+                                        className={`
+                                            flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium flex-1
+                                            ${pathname && new RegExp(tabs.find(t => t.id === id)?.pattern || '').test(pathname)
+                                            ? 'bg-secondary'
+                                            : 'hover:bg-secondary/50'}
+                                            text-foreground
+                                            whitespace-nowrap
+                                        `}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        {label}
+                                    </Link>
+                                    {id === 'about' && <UpdateIndicatorBadge />}
+                                </div>
                             ))}
                         </nav>
                     </div>

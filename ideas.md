@@ -41,10 +41,10 @@
 
 ### Changerawr Universal Markdown Engine Ideas
 
-- [ ] Support Subtext
-- [ ] Support Tables
-- [ ] Support the cool thing Reddit does where you can bold text in a heading ( how did they figure this out? )
-- [ ] migrate from internal engine to the package. not sure if this a good idea, maybe? - would require a full rewrite of the editor, but also ensures feature-parity.
+- [x] Support Subtext
+- [x] Support Tables
+- [x] Support the cool thing Reddit does where you can bold text in a heading ( how did they figure this out? )
+- [x] migrate from internal engine to the package. not sure if this a good idea, maybe? - would require a full rewrite of the editor, but also ensures feature-parity.
 
 ### Sponsorship ideas
 Honestly, I need some sort of funding for this at some point. Here's a list of stuff that might incentivise you to support my efforts.

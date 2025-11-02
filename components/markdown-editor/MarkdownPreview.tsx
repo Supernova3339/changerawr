@@ -3,7 +3,7 @@
 'use client';
 
 import React from 'react';
-import { renderMarkdown } from '@/lib/services/core/markdown';
+import { renderMarkdown } from '@/lib/services/core/markdown/useCustomExtensions';
 
 interface MarkdownPreviewProps {
     content: string;

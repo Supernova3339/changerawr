@@ -1,4 +1,5 @@
 import type {Config} from "tailwindcss";
+import changerawrMarkdownPlugin from "@changerawr/markdown/tailwind";
 
 export default {
     darkMode: ["class"],
@@ -81,5 +82,5 @@ export default {
             }
         }
     },
-    plugins: [require("tailwindcss-animate"), require('@tailwindcss/forms')],
+    plugins: [require("tailwindcss-animate"), require('@tailwindcss/forms'), changerawrMarkdownPlugin()],
 } satisfies Config;

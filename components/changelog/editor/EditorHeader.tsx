@@ -205,6 +205,8 @@ function WWCOpenButton({title, content, version, tags, projectId, entryId}: WWCO
         return null;
     }
 
+    if (process.env.NEXT_PUBLIC_SHOW_WWC_TOOLING !== 'true') return null;
+
     return (
         <Button
             variant="outline"
@@ -212,7 +214,7 @@ function WWCOpenButton({title, content, version, tags, projectId, entryId}: WWCO
             onClick={handleOpenInWWC}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors border-dashed"
         >
-            <ExternalLink className="h-3.5 w-3.5"/>
+            <ExternalLink className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">Open in WWC</span>
         </Button>
     );
