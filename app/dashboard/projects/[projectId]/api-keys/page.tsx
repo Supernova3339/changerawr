@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import { useAuth } from '@/context/auth';
 import {
     Card,
     CardHeader,
@@ -28,9 +30,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import {
     Key,
@@ -42,7 +52,10 @@ import {
     FileText,
     Shield,
     X,
-    ExternalLink
+    ExternalLink,
+    Eye,
+    EyeOff,
+    Filter
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -61,11 +74,14 @@ interface ApiKey {
     expiresAt: string | null;
     isRevoked: boolean;
     projectId: string | null;
-    project?: {
-        id: string;
-        name: string;
-    };
     permissions: string[];
+    isGlobal: boolean;
+    userId: string;
+    user: {
+        id: string;
+        name: string | null;
+        email: string;
+    };
 }
 
 interface RenameDialogProps {
@@ -189,38 +205,71 @@ function NewKeyAlert({ keyData, onClose, onCopy }: { keyData: { key: string; id:
     );
 }
 
-export default function ApiKeysPage() {
+export default function ProjectApiKeysPage() {
+    const params = useParams();
+    const projectId = params.projectId as string;
     const queryClient = useQueryClient();
+    const { user } = useAuth();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
     const [newKeyName, setNewKeyName] = useState('');
     const [newKeyPermissions, setNewKeyPermissions] = useState<string[]>(PERMISSION_GROUPS.FULL_ACCESS);
+    const [newKeyIsGlobal, setNewKeyIsGlobal] = useState(false);
     const [newKeyData, setNewKeyData] = useState<{ key: string; id: string } | null>(null);
     const [renameKey, setRenameKey] = useState<ApiKey | null>(null);
+    const [userFilter, setUserFilter] = useState<string>('all');
+
+    const { data: systemConfig } = useQuery<{ adminOnlyApiKeyCreation: boolean }>({
+        queryKey: ['system-config-api-keys'],
+        queryFn: async () => {
+            const response = await fetch('/api/admin/config');
+            if (!response.ok) return { adminOnlyApiKeyCreation: false };
+            return response.json();
+        },
+    });
 
     const { data: apiKeys, isLoading } = useQuery<ApiKey[]>({
-        queryKey: ['api-keys'],
+        queryKey: ['project-api-keys', projectId, userFilter],
         queryFn: async () => {
-            const response = await fetch('/api/admin/api-keys');
+            const url = new URL(`/api/projects/${projectId}/api-keys`, window.location.origin);
+            if (userFilter !== 'all') {
+                url.searchParams.set('userId', userFilter);
+            }
+            const response = await fetch(url.toString());
             if (!response.ok) throw new Error('Failed to fetch API keys');
             return response.json();
         },
-        refetchInterval: 30000, // Refetch every 30 seconds
-        staleTime: 15000, // Consider data stale after 15 seconds
+        refetchInterval: 30000,
+        staleTime: 15000,
     });
 
+    const isAdmin = user?.role === 'ADMIN';
+    const canCreateKeys = !systemConfig?.adminOnlyApiKeyCreation || isAdmin;
+
+    // Get unique users from API keys for filter dropdown
+    const uniqueUsers = React.useMemo(() => {
+        if (!apiKeys || !isAdmin) return [];
+        const usersMap = new Map<string, { id: string; name: string | null; email: string }>();
+        apiKeys.forEach(key => {
+            if (!usersMap.has(key.userId)) {
+                usersMap.set(key.userId, key.user);
+            }
+        });
+        return Array.from(usersMap.values());
+    }, [apiKeys, isAdmin]);
+
     const createApiKey = useMutation({
-        mutationFn: async ({ name, permissions }: { name: string; permissions: string[] }) => {
-            const response = await fetch('/api/admin/api-keys', {
+        mutationFn: async ({ name, permissions, isGlobal }: { name: string; permissions: string[]; isGlobal: boolean }) => {
+            const response = await fetch(`/api/projects/${projectId}/api-keys`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, permissions }),
+                body: JSON.stringify({ name, permissions, isGlobal }),
             });
             if (!response.ok) throw new Error('Failed to create API key');
             return response.json();
         },
         onSuccess: (data) => {
-            queryClient.setQueryData(['api-keys'], (old: ApiKey[] | undefined) => {
+            queryClient.setQueryData(['project-api-keys', projectId], (old: ApiKey[] | undefined) => {
                 return old ? [...old, data] : [data];
             });
             setNewKeyData({ key: data.key, id: data.id });
@@ -233,7 +282,7 @@ export default function ApiKeysPage() {
 
     const renameApiKey = useMutation({
         mutationFn: async ({ id, name }: { id: string; name: string }) => {
-            const response = await fetch(`/api/admin/api-keys/${id}`, {
+            const response = await fetch(`/api/projects/${projectId}/api-keys/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name }),
@@ -242,10 +291,10 @@ export default function ApiKeysPage() {
             return response.json();
         },
         onMutate: async ({ id, name }) => {
-            await queryClient.cancelQueries({ queryKey: ['api-keys'] });
-            const previousKeys = queryClient.getQueryData(['api-keys']);
+            await queryClient.cancelQueries({ queryKey: ['project-api-keys', projectId] });
+            const previousKeys = queryClient.getQueryData(['project-api-keys', projectId]);
 
-            queryClient.setQueryData(['api-keys'], (old: ApiKey[] | undefined) => {
+            queryClient.setQueryData(['project-api-keys', projectId], (old: ApiKey[] | undefined) => {
                 return old?.map(key =>
                     key.id === id ? { ...key, name } : key
                 );
@@ -255,17 +304,17 @@ export default function ApiKeysPage() {
         },
         onError: (err, variables, context) => {
             if (context?.previousKeys) {
-                queryClient.setQueryData(['api-keys'], context.previousKeys);
+                queryClient.setQueryData(['project-api-keys', projectId], context.previousKeys);
             }
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+            queryClient.invalidateQueries({ queryKey: ['project-api-keys', projectId] });
         },
     });
 
     const revokeApiKey = useMutation({
         mutationFn: async (id: string) => {
-            const response = await fetch(`/api/admin/api-keys/${id}`, {
+            const response = await fetch(`/api/projects/${projectId}/api-keys/${id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ isRevoked: true }),
@@ -274,10 +323,10 @@ export default function ApiKeysPage() {
             return response.json();
         },
         onMutate: async (id) => {
-            await queryClient.cancelQueries({ queryKey: ['api-keys'] });
-            const previousKeys = queryClient.getQueryData(['api-keys']);
+            await queryClient.cancelQueries({ queryKey: ['project-api-keys', projectId] });
+            const previousKeys = queryClient.getQueryData(['project-api-keys', projectId]);
 
-            queryClient.setQueryData(['api-keys'], (old: ApiKey[] | undefined) => {
+            queryClient.setQueryData(['project-api-keys', projectId], (old: ApiKey[] | undefined) => {
                 return old?.map(key =>
                     key.id === id ? { ...key, isRevoked: true } : key
                 );
@@ -287,26 +336,26 @@ export default function ApiKeysPage() {
         },
         onError: (err, id, context) => {
             if (context?.previousKeys) {
-                queryClient.setQueryData(['api-keys'], context.previousKeys);
+                queryClient.setQueryData(['project-api-keys', projectId], context.previousKeys);
             }
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+            queryClient.invalidateQueries({ queryKey: ['project-api-keys', projectId] });
         },
     });
 
     const deleteApiKey = useMutation({
         mutationFn: async (id: string) => {
-            const response = await fetch(`/api/admin/api-keys/${id}`, {
+            const response = await fetch(`/api/projects/${projectId}/api-keys/${id}`, {
                 method: 'DELETE',
             });
             if (!response.ok) throw new Error('Failed to delete API key');
         },
         onMutate: async (id) => {
-            await queryClient.cancelQueries({ queryKey: ['api-keys'] });
-            const previousKeys = queryClient.getQueryData(['api-keys']);
+            await queryClient.cancelQueries({ queryKey: ['project-api-keys', projectId] });
+            const previousKeys = queryClient.getQueryData(['project-api-keys', projectId]);
 
-            queryClient.setQueryData(['api-keys'], (old: ApiKey[] | undefined) => {
+            queryClient.setQueryData(['project-api-keys', projectId], (old: ApiKey[] | undefined) => {
                 return old?.filter(key => key.id !== id);
             });
 
@@ -314,11 +363,11 @@ export default function ApiKeysPage() {
         },
         onError: (err, id, context) => {
             if (context?.previousKeys) {
-                queryClient.setQueryData(['api-keys'], context.previousKeys);
+                queryClient.setQueryData(['project-api-keys', projectId], context.previousKeys);
             }
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+            queryClient.invalidateQueries({ queryKey: ['project-api-keys', projectId] });
         },
     });
 
@@ -326,9 +375,10 @@ export default function ApiKeysPage() {
         e.preventDefault();
         if (!newKeyName.trim()) return;
 
-        await createApiKey.mutate({ name: newKeyName, permissions: newKeyPermissions });
+        await createApiKey.mutate({ name: newKeyName, permissions: newKeyPermissions, isGlobal: newKeyIsGlobal });
         setNewKeyName('');
         setNewKeyPermissions(PERMISSION_GROUPS.FULL_ACCESS);
+        setNewKeyIsGlobal(false);
         setIsCreateDialogOpen(false);
     };
 
@@ -366,7 +416,7 @@ export default function ApiKeysPage() {
                 <div>
                     <h1 className="text-2xl font-bold">API Keys</h1>
                     <p className="text-muted-foreground mt-1">
-                        Create and manage your API keys for authentication.
+                        Create and manage API keys for this project.
                     </p>
                 </div>
                 <div className="flex items-center gap-3 mt-4 md:mt-0">
@@ -377,13 +427,14 @@ export default function ApiKeysPage() {
                             <ExternalLink className="ml-1 h-3 w-3" />
                         </Link>
                     </Button>
-                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button size="sm" className="h-9">
-                                <Plus className="h-4 w-4 mr-2" />
-                                Create Key
-                            </Button>
-                        </DialogTrigger>
+                    {canCreateKeys && (
+                        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="sm" className="h-9">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create Key
+                                </Button>
+                            </DialogTrigger>
                         <DialogContent className="max-w-md">
                             <DialogHeader>
                                 <DialogTitle>Create New API Key</DialogTitle>
@@ -414,6 +465,26 @@ export default function ApiKeysPage() {
                                             {newKeyPermissions.length} permission{newKeyPermissions.length !== 1 ? 's' : ''} selected
                                         </Button>
                                     </div>
+                                    <div className="flex items-center justify-between rounded-lg border p-4">
+                                        <div className="flex gap-2">
+                                            {newKeyIsGlobal ? <Eye className="h-5 w-5 text-muted-foreground mt-0.5" /> : <EyeOff className="h-5 w-5 text-muted-foreground mt-0.5" />}
+                                            <div className="space-y-0.5">
+                                                <Label htmlFor="isGlobal" className="text-base cursor-pointer">
+                                                    Visible to Administrators
+                                                </Label>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {newKeyIsGlobal
+                                                        ? 'Administrators can see and manage this key'
+                                                        : 'Only you can see and manage this key'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Switch
+                                            id="isGlobal"
+                                            checked={newKeyIsGlobal}
+                                            onCheckedChange={setNewKeyIsGlobal}
+                                        />
+                                    </div>
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={!newKeyName.trim()}>
@@ -422,7 +493,8 @@ export default function ApiKeysPage() {
                                 </DialogFooter>
                             </form>
                         </DialogContent>
-                    </Dialog>
+                        </Dialog>
+                    )}
                 </div>
             </div>
 
@@ -441,8 +513,26 @@ export default function ApiKeysPage() {
                 {/* API Keys Card */}
                 <div className="lg:col-span-2">
                     <Card className="shadow-sm">
-                        <CardHeader className="pb-3 border-b">
+                        <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
                             <CardTitle className="text-base font-medium">Your API Keys</CardTitle>
+                            {isAdmin && uniqueUsers.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                    <Filter className="h-4 w-4 text-muted-foreground" />
+                                    <Select value={userFilter} onValueChange={setUserFilter}>
+                                        <SelectTrigger className="w-[200px] h-9">
+                                            <SelectValue placeholder="Filter by user" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Users</SelectItem>
+                                            {uniqueUsers.map((u) => (
+                                                <SelectItem key={u.id} value={u.id}>
+                                                    {u.name || u.email}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                         </CardHeader>
 
                         {/* API Keys Table */}
@@ -453,14 +543,19 @@ export default function ApiKeysPage() {
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
                                         Name
                                     </th>
+                                    {isAdmin && (
+                                        <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
+                                            Owner
+                                        </th>
+                                    )}
+                                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
+                                        Visibility
+                                    </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
                                         Permissions
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
                                         Created
-                                    </th>
-                                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
-                                        Connection
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
                                         Status
@@ -480,6 +575,27 @@ export default function ApiKeysPage() {
                                             <td className="py-4 px-6 text-sm font-medium">
                                                 {key.name}
                                             </td>
+                                            {isAdmin && (
+                                                <td className="py-4 px-6 text-sm text-muted-foreground">
+                                                    <div>
+                                                        <div className="font-medium text-foreground">{key.user.name || 'Unknown'}</div>
+                                                        <div className="text-xs">{key.user.email}</div>
+                                                    </div>
+                                                </td>
+                                            )}
+                                            <td className="py-4 px-6 text-sm">
+                                                {key.isGlobal ? (
+                                                    <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20">
+                                                        <Eye className="h-3 w-3 mr-1" />
+                                                        Global
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="text-muted-foreground">
+                                                        <EyeOff className="h-3 w-3 mr-1" />
+                                                        Private
+                                                    </Badge>
+                                                )}
+                                            </td>
                                             <td className="py-4 px-6 text-sm">
                                                 <div className="flex items-center gap-1">
                                                     <Badge variant="secondary" className="text-xs">
@@ -489,17 +605,6 @@ export default function ApiKeysPage() {
                                             </td>
                                             <td className="py-4 px-6 text-sm text-muted-foreground">
                                                 {format(new Date(key.createdAt), 'PPP')}
-                                            </td>
-                                            <td className="py-4 px-6 text-sm">
-                                                {key.lastUsed ? (
-                                                    <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
-                                                        Connected
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="text-muted-foreground">
-                                                        Waiting for first request
-                                                    </Badge>
-                                                )}
                                             </td>
                                             <td className="py-4 px-6 text-sm">
                                                 {key.isRevoked ? (
@@ -594,22 +699,27 @@ export default function ApiKeysPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="py-16 text-center">
+                                        <td colSpan={isAdmin ? 7 : 6} className="py-16 text-center">
                                             <div className="flex flex-col items-center justify-center">
                                                 <div className="rounded-full p-4 mb-4 bg-muted">
                                                     <Key className="h-8 w-8 text-muted-foreground/60" />
                                                 </div>
                                                 <h3 className="text-lg font-medium mb-1">No API Keys</h3>
                                                 <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-                                                    Create an API key to get started with the Changerawr API.
+                                                    {canCreateKeys
+                                                        ? 'Create an API key to get started with the Changerawr API.'
+                                                        : 'Only administrators can create API keys for this project. Contact an administrator to request an API key.'
+                                                    }
                                                 </p>
-                                                <Button
-                                                    onClick={() => setIsCreateDialogOpen(true)}
-                                                    size="sm"
-                                                >
-                                                    <Plus className="h-4 w-4 mr-2" />
-                                                    Create Key
-                                                </Button>
+                                                {canCreateKeys && (
+                                                    <Button
+                                                        onClick={() => setIsCreateDialogOpen(true)}
+                                                        size="sm"
+                                                    >
+                                                        <Plus className="h-4 w-4 mr-2" />
+                                                        Create Key
+                                                    </Button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

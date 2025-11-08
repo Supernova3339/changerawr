@@ -4,6 +4,7 @@ import {
     changelogEntrySchema,
     sendError,
     sendSuccess,
+    generateExcerpt,
     type ChangelogEntryInput
 } from '@/lib/utils/changelog'
 import { z } from "zod";
@@ -131,6 +132,7 @@ export async function PUT(
             data: {
                 title: body.title,
                 content: body.content,
+                excerpt: generateExcerpt(body.content), // Regenerate excerpt when content changes
                 version: body.version,
                 tags: body.tags ? {
                     set: [], // Clear existing tags

@@ -31,8 +31,7 @@
 - [x] add a configuration option for project email notifications to allow emails to be sent out on publish
 - [x] allow users to bookmark the entry they are working on to their favorites
 - [ ] upgrade to next 16
-- [x] allow for manually setting a post's publishedAt date.
-- [ ] add "user preferences" to public changelog pages so visitors can customize settings such as setting the theme. This is a major feature due to how the theme handler currently works. I am not looking forward to getting around to implementing this.
+- [x] allow for manua
 
 ### CLI Ideas
 
@@ -50,6 +49,6 @@
 Honestly, I need some sort of funding for this at some point. Here's a list of stuff that might incentivise you to support my efforts.
 - [ ] the about page has a list of every single sponsorer of the Changerawr project
 - [ ] dedicated page on the Changerawr website for viewing all sponsors.
-- [ ] sponsor tiers are overrated, will seperate it by business/personal though. Any level of support is appreciated.
+- [ ] sponsor tiers are overrated, will separate it by business/personal though. Any level of support is appreciated.
 - [ ] add a license key system to Changerawr that literally just gives a "supporter" badge in the about page. 
 - [ ] higher feature request priority. I am extremely talented and can most likely add any feature that is requested, perhaps this is a good incentive?

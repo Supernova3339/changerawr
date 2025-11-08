@@ -12,6 +12,36 @@ export class TelemetryService {
     private static readonly DEFAULT_CONFIG_ID = 1;
 
     /**
+     * Check if telemetry logging is enabled
+     */
+    private static shouldLog(): boolean {
+        return process.env.SHOW_TELEMETRY_LOGS === 'true';
+    }
+
+    /**
+     * Log message if telemetry logging is enabled
+     */
+    private static log(...args: unknown[]): void {
+        if (this.shouldLog()) {
+            console.log(...args);
+        }
+    }
+
+    /**
+     * Log error (always shown)
+     */
+    private static logError(...args: unknown[]): void {
+        console.error(...args);
+    }
+
+    /**
+     * Log warning (always shown)
+     */
+    private static logWarn(...args: unknown[]): void {
+        console.warn(...args);
+    }
+
+    /**
      * Get telemetry configuration
      */
     static async getTelemetryConfig(): Promise<TelemetryConfig> {
@@ -43,7 +73,7 @@ export class TelemetryService {
      * Reactivate an existing instance
      */
     static async reactivateInstance(instanceId: string): Promise<void> {
-        console.log('Reactivating existing instance:', instanceId);
+        this.log('Reactivating existing instance:', instanceId);
 
         const reactivationData: TelemetryData = {
             instanceId,
@@ -55,9 +85,9 @@ export class TelemetryService {
 
         try {
             await this.sendTelemetry(reactivationData);
-            console.log('Instance reactivated successfully:', instanceId);
+            this.log('Instance reactivated successfully:', instanceId);
         } catch (error) {
-            console.error('Failed to reactivate instance:', error);
+            this.logError('Failed to reactivate instance:', error);
             throw error;
         }
     }
@@ -85,11 +115,11 @@ export class TelemetryService {
         if (config.allowTelemetry === 'enabled') {
             // If we have an instance ID and we're going from disabled to enabled, reactivate
             if (config.instanceId && currentConfig.allowTelemetry === 'disabled') {
-                console.log('Reactivating previously disabled instance');
+                this.log('Reactivating previously disabled instance');
                 try {
                     await this.reactivateInstance(config.instanceId);
                 } catch (error) {
-                    console.warn('Failed to reactivate instance, but continuing with scheduling:', error);
+                    this.logWarn('Failed to reactivate instance, but continuing with scheduling:', error);
                 }
             }
 
@@ -110,8 +140,8 @@ export class TelemetryService {
             timestamp: new Date().toISOString(),
         };
 
-        console.log('Registering new instance with telemetry server...');
-        console.log('Registration data:', registrationData);
+        this.log('Registering new instance with telemetry server...');
+        this.log('Registration data:', registrationData);
 
         try {
             const controller = new AbortController();
@@ -130,22 +160,22 @@ export class TelemetryService {
 
             clearTimeout(timeoutId);
 
-            console.log('Registration response status:', response.status);
+            this.log('Registration response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Registration HTTP error response:', errorText);
+                this.logError('Registration HTTP error response:', errorText);
                 throw new Error(`Registration HTTP ${response.status}: ${errorText}`);
             }
 
             const responseText = await response.text();
-            console.log('Registration raw response text:', responseText);
+            this.log('Registration raw response text:', responseText);
 
             let parsedResponse: TelemetryResponse;
             try {
                 parsedResponse = JSON.parse(responseText);
             } catch (parseError) {
-                console.error('Registration JSON parse error:', parseError);
+                this.logError('Registration JSON parse error:', parseError);
                 throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}...`);
             }
 
@@ -154,10 +184,10 @@ export class TelemetryService {
             }
 
             const instanceId = parsedResponse.instanceId;
-            console.log('Instance registered successfully:', instanceId);
+            this.log('Instance registered successfully:', instanceId);
 
             // Send initial telemetry data immediately after registration
-            console.log('Sending initial telemetry data...');
+            this.log('Sending initial telemetry data...');
             try {
                 const initialTelemetryData: TelemetryData = {
                     instanceId,
@@ -168,9 +198,9 @@ export class TelemetryService {
                 };
 
                 await this.sendTelemetry(initialTelemetryData);
-                console.log('Initial telemetry sent successfully');
+                this.log('Initial telemetry sent successfully');
             } catch (telemetryError) {
-                console.warn('Failed to send initial telemetry (registration still successful):', telemetryError);
+                this.logWarn('Failed to send initial telemetry (registration still successful):', telemetryError);
                 // Don't throw here - registration was successful, telemetry can be retried later
             }
 
@@ -179,13 +209,13 @@ export class TelemetryService {
         } catch (error) {
             if (error instanceof Error) {
                 if (error.name === 'AbortError') {
-                    console.error('Registration request timed out');
+                    this.logError('Registration request timed out');
                     throw new Error('Registration request timed out after 30 seconds');
                 }
-                console.error('Registration error:', error.message);
+                this.logError('Registration error:', error.message);
                 throw error;
             }
-            console.error('Unknown registration error:', error);
+            this.logError('Unknown registration error:', error);
             throw new Error('Unknown error occurred during registration');
         }
     }
@@ -194,8 +224,8 @@ export class TelemetryService {
      * Send telemetry data to server
      */
     static async sendTelemetry(data: TelemetryData): Promise<TelemetryResponse> {
-        console.log('Sending telemetry to:', this.SEND_TELEMETRY_URL);
-        console.log('Payload:', JSON.stringify(data, null, 2));
+        this.log('Sending telemetry to:', this.SEND_TELEMETRY_URL);
+        this.log('Payload:', JSON.stringify(data, null, 2));
 
         try {
             const controller = new AbortController();
@@ -214,24 +244,24 @@ export class TelemetryService {
 
             clearTimeout(timeoutId);
 
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            this.log('Response status:', response.status);
+            this.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('HTTP error response:', errorText);
+                this.logError('HTTP error response:', errorText);
                 throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 const responseText = await response.text();
-                console.error('Non-JSON response received:', responseText);
+                this.logError('Non-JSON response received:', responseText);
                 throw new Error(`Expected JSON response, got: ${contentType}. Response: ${responseText}`);
             }
 
             const responseText = await response.text();
-            console.log('Raw response text:', responseText);
+            this.log('Raw response text:', responseText);
 
             if (!responseText || responseText.trim() === '') {
                 throw new Error('Empty response from telemetry server');
@@ -241,12 +271,12 @@ export class TelemetryService {
             try {
                 parsedResponse = JSON.parse(responseText);
             } catch (parseError) {
-                console.error('JSON parse error:', parseError);
-                console.error('Response text was:', responseText);
+                this.logError('JSON parse error:', parseError);
+                this.logError('Response text was:', responseText);
                 throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}...`);
             }
 
-            console.log('Parsed response:', parsedResponse);
+            this.log('Parsed response:', parsedResponse);
 
             if (!parsedResponse.success) {
                 throw new Error(`Server error: ${parsedResponse || 'Unknown error'}`);
@@ -257,13 +287,13 @@ export class TelemetryService {
         } catch (error) {
             if (error instanceof Error) {
                 if (error.name === 'AbortError') {
-                    console.error('Telemetry request timed out');
+                    this.logError('Telemetry request timed out');
                     throw new Error('Telemetry request timed out after 30 seconds');
                 }
-                console.error('Telemetry send error:', error.message);
+                this.logError('Telemetry send error:', error.message);
                 throw error;
             }
-            console.error('Unknown telemetry error:', error);
+            this.logError('Unknown telemetry error:', error);
             throw new Error('Unknown error occurred while sending telemetry');
         }
     }
@@ -275,7 +305,7 @@ export class TelemetryService {
         const config = await this.getTelemetryConfig();
 
         if (config.allowTelemetry !== 'enabled' || !config.instanceId) {
-            console.log('Telemetry not enabled or no instance ID, skipping send');
+            this.log('Telemetry not enabled or no instance ID, skipping send');
             return;
         }
 
@@ -287,16 +317,16 @@ export class TelemetryService {
             timestamp: new Date().toISOString(),
         };
 
-        console.log('Sending scheduled telemetry for instance:', config.instanceId);
+        this.log('Sending scheduled telemetry for instance:', config.instanceId);
         await this.sendTelemetry(data);
-        console.log('Scheduled telemetry sent successfully');
+        this.log('Scheduled telemetry sent successfully');
     }
 
     /**
      * Deactivate instance
      */
     static async deactivateInstance(instanceId: string): Promise<void> {
-        console.log('Deactivating instance:', instanceId);
+        this.log('Deactivating instance:', instanceId);
 
         try {
             const controller = new AbortController();
@@ -317,12 +347,12 @@ export class TelemetryService {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('Instance deactivated successfully:', result);
+                this.log('Instance deactivated successfully:', result);
             } else {
-                console.warn('Failed to deactivate instance:', response.status, await response.text());
+                this.logWarn('Failed to deactivate instance:', response.status, await response.text());
             }
         } catch (error) {
-            console.warn('Failed to deactivate instance:', error);
+            this.logWarn('Failed to deactivate instance:', error);
             // Don't throw - deactivation failures shouldn't break the app
         }
     }
@@ -331,7 +361,7 @@ export class TelemetryService {
      * Get telemetry statistics
      */
     static async getTelemetryStats(): Promise<TelemetryStats> {
-        console.log('Fetching telemetry statistics...');
+        this.log('Fetching telemetry statistics...');
 
         try {
             const response = await fetch(this.STATS_URL, {
@@ -347,10 +377,10 @@ export class TelemetryService {
             }
 
             const stats = await response.json();
-            console.log('Retrieved telemetry stats:', stats);
+            this.log('Retrieved telemetry stats:', stats);
             return stats;
         } catch (error) {
-            console.error('Failed to fetch telemetry stats:', error);
+            this.logError('Failed to fetch telemetry stats:', error);
             throw error;
         }
     }
@@ -375,7 +405,7 @@ export class TelemetryService {
             maxRetries: 3,
         });
 
-        console.log(`Scheduled telemetry job ${jobId} for:`, nextRun.toISOString());
+        this.log(`Scheduled telemetry job ${jobId} for:`, nextRun.toISOString());
     }
 
     /**
@@ -401,31 +431,31 @@ export class TelemetryService {
             });
         }
 
-        console.log(`Cancelled ${pendingJobs.length} pending telemetry jobs`);
+        this.log(`Cancelled ${pendingJobs.length} pending telemetry jobs`);
     }
 
     /**
      * Initialize telemetry (call on app startup)
      */
     static async initialize(): Promise<void> {
-        console.log('Initializing telemetry service...');
+        this.log('Initializing telemetry service...');
 
         try {
             const config = await this.getTelemetryConfig();
-            console.log('Current telemetry config:', config);
+            this.log('Current telemetry config:', config);
 
             if (config.allowTelemetry === 'enabled') {
                 if (config.instanceId) {
-                    console.log('Telemetry enabled for instance:', config.instanceId);
+                    this.log('Telemetry enabled for instance:', config.instanceId);
                     await this.scheduleTelemetryJob();
                 } else {
-                    console.log('Telemetry enabled but no instance ID - will prompt for registration');
+                    this.log('Telemetry enabled but no instance ID - will prompt for registration');
                 }
             } else {
-                console.log('Telemetry disabled or in prompt mode');
+                this.log('Telemetry disabled or in prompt mode');
             }
         } catch (error) {
-            console.error('Failed to initialize telemetry:', error);
+            this.logError('Failed to initialize telemetry:', error);
             // Don't throw - telemetry failures shouldn't break app startup
         }
     }
@@ -434,17 +464,17 @@ export class TelemetryService {
      * Handle app shutdown
      */
     static async shutdown(): Promise<void> {
-        console.log('Shutting down telemetry service...');
+        this.log('Shutting down telemetry service...');
 
         try {
             const config = await this.getTelemetryConfig();
 
             if (config.allowTelemetry === 'enabled' && config.instanceId) {
-                console.log('Deactivating instance on shutdown:', config.instanceId);
+                this.log('Deactivating instance on shutdown:', config.instanceId);
                 await this.deactivateInstance(config.instanceId);
             }
         } catch (error) {
-            console.error('Error during telemetry shutdown:', error);
+            this.logError('Error during telemetry shutdown:', error);
             // Don't throw - shutdown errors shouldn't prevent app termination
         }
     }
@@ -453,7 +483,7 @@ export class TelemetryService {
      * Test telemetry connection (for debugging)
      */
     static async testConnection(): Promise<void> {
-        console.log('Testing telemetry connection...');
+        this.log('Testing telemetry connection...');
 
         try {
             // First test if the server is responding
@@ -465,11 +495,11 @@ export class TelemetryService {
                 },
             });
 
-            console.log('Health check response:', healthResponse.status);
+            this.log('Health check response:', healthResponse.status);
 
             if (healthResponse.ok) {
                 const healthData = await healthResponse.json();
-                console.log('Server health data:', healthData);
+                this.log('Server health data:', healthData);
             }
 
             // Then test actual telemetry submission
@@ -481,19 +511,19 @@ export class TelemetryService {
                 timestamp: new Date().toISOString(),
             };
 
-            console.log('Testing telemetry submission...');
+            this.log('Testing telemetry submission...');
             const result = await this.sendTelemetry(testData);
-            console.log('Test submission result:', result);
+            this.log('Test submission result:', result);
 
             // Test deactivation
             if (result.instanceId) {
-                console.log('Testing instance deactivation...');
+                this.log('Testing instance deactivation...');
                 await this.deactivateInstance(result.instanceId);
             }
 
-            console.log('Telemetry connection test completed successfully');
+            this.log('Telemetry connection test completed successfully');
         } catch (error) {
-            console.error('Telemetry connection test failed:', error);
+            this.logError('Telemetry connection test failed:', error);
             throw error;
         }
     }

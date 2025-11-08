@@ -41,7 +41,8 @@ import {
     Activity,
     Shield,
     CheckCircle,
-    XCircle
+    XCircle,
+    Key
 } from 'lucide-react'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {useForm} from 'react-hook-form'
@@ -59,6 +60,7 @@ const systemConfigSchema = z.object({
     enableAnalytics: z.boolean(),
     enableNotifications: z.boolean(),
     allowTelemetry: z.enum(['prompt', 'enabled', 'disabled']),
+    adminOnlyApiKeyCreation: z.boolean(),
 })
 
 type SystemConfig = z.infer<typeof systemConfigSchema>
@@ -316,6 +318,35 @@ export default function SystemConfigPage() {
                                                                     <FormDescription>
                                                                         Send notifications for internal actions ( e.g.
                                                                         approvals )
+                                                                    </FormDescription>
+                                                                </div>
+                                                            </div>
+                                                            <FormControl>
+                                                                <Switch
+                                                                    checked={field.value}
+                                                                    onCheckedChange={field.onChange}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    </motion.div>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={form.control}
+                                                name="adminOnlyApiKeyCreation"
+                                                render={({field}) => (
+                                                    <motion.div variants={cardVariants}>
+                                                        <FormItem
+                                                            className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                            <div className="flex gap-2">
+                                                                <Key className="h-5 w-5 text-muted-foreground mt-0.5"/>
+                                                                <div className="space-y-0.5">
+                                                                    <FormLabel className="text-base">
+                                                                        Admin-Only API Key Creation
+                                                                    </FormLabel>
+                                                                    <FormDescription>
+                                                                        Restrict API key creation to administrators only
                                                                     </FormDescription>
                                                                 </div>
                                                             </div>

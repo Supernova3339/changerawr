@@ -1,5 +1,6 @@
 import {db} from '@/lib/db';
 import type {Prisma} from '@prisma/client';
+import {SYSTEM_USER_ID} from '@/lib/services/core/system-user/service';
 
 interface AuditLogDetails {
     [key: string]: unknown;
@@ -8,7 +9,7 @@ interface AuditLogDetails {
 /**
  * Creates an audit log entry
  * @param action The type of action performed
- * @param performedById ID of the user performing the action (can be null for system actions)
+ * @param performedById ID of the user performing the action (use 'system' for system actions)
  * @param targetUserId ID of the user the action is performed on (can be null)
  * @param details Optional additional details about the action
  */
@@ -19,6 +20,14 @@ export async function createAuditLog(
     details?: AuditLogDetails
 ): Promise<{ id: string } | null> {
     try {
+        // Map 'system' string to SYSTEM_USER_ID constant
+        if (performedById === 'system') {
+            performedById = SYSTEM_USER_ID;
+        }
+        if (targetUserId === 'system') {
+            targetUserId = SYSTEM_USER_ID;
+        }
+
         let safeDetails: AuditLogDetails = {};
 
         if (details && typeof details === 'object') {

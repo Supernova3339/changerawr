@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import {useAuth} from '@/context/auth'
 import {cn} from '@/lib/utils'
+import {truncateText} from '@/lib/utils/text'
 
 type ActionType = 'PUBLISH' | 'UNPUBLISH' | 'DELETE' | 'ALLOW_SCHEDULE';
 type RequestType = 'ALLOW_PUBLISH' | 'DELETE_ENTRY' | 'ALLOW_SCHEDULE';
@@ -466,7 +467,7 @@ export function ChangelogActionRequest({
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-0">
-                                <p className="text-sm font-medium truncate">{title}</p>
+                                <p className="text-sm font-medium" title={title}>{truncateText(title, 50)}</p>
                                 <div className="flex items-center gap-2 mt-2">
                                     <Badge variant={isPublished ? 'default' : 'secondary'} className="text-xs">
                                         {isPublished ? (

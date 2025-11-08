@@ -25,7 +25,8 @@ import {
     Rss,
     type LucideIcon,
     ChartNoAxesCombined,
-    Globe
+    Globe,
+    Key
 } from 'lucide-react';
 import {SiGithub} from '@icons-pack/react-simple-icons';
 import {Button} from '@/components/ui/button'
@@ -442,6 +443,12 @@ export function ProjectSidebar({projectId}: { projectId: string }) {
                             label="Domains"
                             active={pathname.includes(`/dashboard/projects/${projectId}/domains`)}
                             disabled={!isPublic}
+                        />
+                        <NavItem
+                            href={`/dashboard/projects/${projectId}/api-keys`}
+                            icon={Key}
+                            label="API Keys"
+                            active={pathname.includes(`/dashboard/projects/${projectId}/api-keys`)}
                         />
                     </nav>
 

@@ -3,20 +3,25 @@
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 import { useAuth } from "@/context/auth"
+import { usePathname } from "next/navigation"
 
 // Theme sync component that handles user settings integration
 function ThemeSync() {
     const { theme, setTheme } = useTheme()
     const { user, isLoading } = useAuth()
     const [hasSynced, setHasSynced] = React.useState(false)
+    const pathname = usePathname()
 
     // Check if user is authenticated (not loading and has user)
     const isAuthenticated = !isLoading && !!user
 
+    // Don't sync for public changelog pages - they use per-project storage
+    const isPublicChangelog = pathname?.startsWith('/changelog/')
+
     // Sync theme with user settings when authenticated
     React.useEffect(() => {
         async function syncTheme() {
-            if (!isAuthenticated || !user || hasSynced) return
+            if (!isAuthenticated || !user || hasSynced || isPublicChangelog) return
 
             try {
                 const response = await fetch('/api/auth/settings')
@@ -34,12 +39,12 @@ function ThemeSync() {
         }
 
         syncTheme()
-    }, [isAuthenticated, user, theme, setTheme, hasSynced])
+    }, [isAuthenticated, user, theme, setTheme, hasSynced, isPublicChangelog])
 
     // Save theme changes to user settings when authenticated
     React.useEffect(() => {
         async function saveTheme() {
-            if (!isAuthenticated || !user || !hasSynced || !theme) return
+            if (!isAuthenticated || !user || !hasSynced || !theme || isPublicChangelog) return
 
             try {
                 await fetch('/api/auth/settings', {
@@ -55,7 +60,7 @@ function ThemeSync() {
         // Debounce theme saves
         const timeoutId = setTimeout(saveTheme, 500)
         return () => clearTimeout(timeoutId)
-    }, [theme, isAuthenticated, user, hasSynced])
+    }, [theme, isAuthenticated, user, hasSynced, isPublicChangelog])
 
     return null
 }

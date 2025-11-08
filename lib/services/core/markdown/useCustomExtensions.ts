@@ -36,10 +36,56 @@ function getMarkdownEngine(): ChangerawrMarkdown {
 /**
  * Render markdown with all custom extensions
  * This is the main function to use for rendering markdown throughout the app
+ *
+ * Note: The engine automatically caches rendered HTML internally using LRU caching.
+ * No need for manual memoization - the engine handles it!
  */
 export function renderMarkdown(markdown: string): string {
   const engine = getMarkdownEngine();
   return engine.toHtml(markdown);
+}
+
+/**
+ * Render markdown with performance metrics
+ * Returns both HTML and detailed performance data
+ */
+export function renderMarkdownWithMetrics(markdown: string): { html: string; metrics: { parseTime: number; renderTime: number; totalTime: number; cacheHit: boolean } } {
+  const engine = getMarkdownEngine();
+  return engine.toHtmlWithMetrics(markdown);
+}
+
+/**
+ * Render markdown with streaming for large documents
+ * Provides progress callbacks for UI updates
+ */
+export async function renderMarkdownStreamed(
+  markdown: string,
+  options?: {
+    chunkSize?: number;
+    onProgress?: (progress: { html: string; progress: number }) => void;
+  }
+): Promise<string> {
+  const engine = getMarkdownEngine();
+  return engine.toHtmlStreamed(markdown, {
+    chunkSize: options?.chunkSize || 50,
+    onChunk: options?.onProgress
+  });
+}
+
+/**
+ * Get cache statistics from the engine
+ */
+export function getCacheStats() {
+  const engine = getMarkdownEngine();
+  return engine.getCacheStats();
+}
+
+/**
+ * Clear all caches in the engine
+ */
+export function clearCaches() {
+  const engine = getMarkdownEngine();
+  engine.clearCaches();
 }
 
 /**

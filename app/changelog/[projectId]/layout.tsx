@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import React from "react";
 import ScrollToTopButton from "@/components/changelog/ScrollToTopButton";
+import { ThemeToggle } from "@/components/changelog/ThemeToggle";
 
 interface ChangelogLayoutProps {
     params: Promise<{ projectId: string }>
@@ -22,10 +23,13 @@ export async function generateMetadata(
     }
 }
 
-export default function ChangelogLayout({ children }: ChangelogLayoutProps) {
+export default async function ChangelogLayout({ children, params }: ChangelogLayoutProps) {
+    const { projectId } = await params
+
     return (
         <div className="container mx-auto py-8">
             <ScrollToTopButton/>
+            <ThemeToggle projectId={projectId} />
             {children}
         </div>
     )

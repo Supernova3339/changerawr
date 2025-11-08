@@ -1,5 +1,6 @@
 import {JobRunnerService} from '@/lib/services/jobs/job-runner.service';
 import {TelemetryService} from '@/lib/services/telemetry/service';
+import {ensureSystemUser} from '@/lib/services/core/system-user/service';
 import {spawn, exec} from 'child_process';
 import path from 'path';
 import {promisify} from 'util';
@@ -82,10 +83,13 @@ function launchGuide(missing: string[]): void {
 }
 
 export async function startBackgroundServices(): Promise<void> {
+    // Check if services are already started
     if (servicesStarted) {
-        console.log('Background services already started');
         return;
     }
+
+    // Prevent multiple simultaneous starts
+    servicesStarted = true;
 
     console.log('Starting background services...');
 
@@ -100,6 +104,8 @@ export async function startBackgroundServices(): Promise<void> {
             checkRequirements();
             console.log('✓ Environment validation passed');
         }
+
+        await ensureSystemUser();
 
         await TelemetryService.initialize();
         console.log('✓ Telemetry service initialized');
@@ -122,9 +128,11 @@ export async function startBackgroundServices(): Promise<void> {
         process.on('SIGINT', () => handleShutdown('SIGINT'));
         process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 
-        servicesStarted = true;
         console.log('✓ All background services started successfully');
     } catch (error) {
+        // Reset the flag if startup fails
+        servicesStarted = false;
+
         if (error instanceof Error && error.name === 'EnvironmentValidationError') {
             const envError = error as EnvironmentValidationError;
 

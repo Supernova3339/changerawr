@@ -110,9 +110,19 @@ interface WWCProtocolState {
 
 const ITEMS_PER_PAGE = 20;
 const CACHE_TIME = 1000 * 60 * 5; // 5 minutes
-const DEBOUNCE_TIME = 1000; // 1 second
+const DEBOUNCE_TIME = 1000; // 1 second (for small content)
+const DEBOUNCE_TIME_MEDIUM = 2000; // 2 seconds (for medium content 1000-3000 words)
+const DEBOUNCE_TIME_LARGE = 5000; // 5 seconds (for large content 3000+ words)
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 2000; // 2 seconds
+
+// Helper function to calculate dynamic debounce time based on content size
+const getDynamicDebounceTime = (content: string): number => {
+    const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+    if (wordCount > 3000) return DEBOUNCE_TIME_LARGE;
+    if (wordCount > 1000) return DEBOUNCE_TIME_MEDIUM;
+    return DEBOUNCE_TIME;
+};
 
 // ===== Enhanced EditorHeader Wrapper =====
 
@@ -234,8 +244,9 @@ export function ChangelogEditor({
         canRetry: false,
     });
 
-    // Debounced state for autosave
-    const [debouncedState] = useDebounce(editorState, DEBOUNCE_TIME);
+    // Debounced state for autosave (dynamic delay based on content size)
+    const dynamicDebounceTime = getDynamicDebounceTime(editorState.content);
+    const [debouncedState] = useDebounce(editorState, dynamicDebounceTime);
 
     // ===== WWC Protocol Data Loading =====
     useEffect(() => {

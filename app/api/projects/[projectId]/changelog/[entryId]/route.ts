@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server'
-import {validateAuthAndGetUser} from '@/lib/utils/changelog'
+import {validateAuthAndGetUser, generateExcerpt} from '@/lib/utils/changelog'
 import {createAuditLog} from '@/lib/utils/auditLog'
 import {db} from '@/lib/db'
 import {Role} from "@/lib/types/auth";
@@ -406,6 +406,7 @@ export async function PUT(
             data: {
                 title,
                 content,
+                excerpt: content ? generateExcerpt(content) : undefined, // Regenerate excerpt when content changes
                 version,
                 updatedAt: new Date(),
                 tags: {

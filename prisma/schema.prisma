@@ -127,6 +127,7 @@ model Project {
   customDomains       CustomDomain[]
   syncMetadata        ProjectSyncMetadata?
   syncedCommits       SyncedCommit[]
+  apiKeys             ApiKey[]
 }
 
 model Passkey {
@@ -158,6 +159,7 @@ model ChangelogEntry {
   id             String                     @id @default(cuid())
   title          String
   content        String                     @db.Text
+  excerpt        String?                    @db.Text // First ~300 chars for list views (auto-generated)
   version        String?
   publishedAt    DateTime?
   scheduledAt    DateTime?
@@ -219,11 +221,15 @@ model ApiKey {
   expiresAt   DateTime?
   userId      String
   user        User      @relation(fields: [userId], references: [id])
-  permissions String[] // Array of permitted actions
+  projectId   String?   // null = global access, set = project-specific
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  permissions String[]  // Array of permitted actions
   isRevoked   Boolean   @default(false)
+  isGlobal    Boolean   @default(false) // true = visible to admins, false = private to owner only
 
   @@index([userId])
   @@index([key])
+  @@index([projectId])
 }
 
 model AuditLog {
@@ -262,6 +268,7 @@ model SystemConfig {
   systemEmail                   String?
   allowTelemetry                TelemetryState @default(PROMPT)
   telemetryInstanceId           String?        @unique
+  adminOnlyApiKeyCreation       Boolean        @default(false) // Require admin role to create API keys
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
 }
