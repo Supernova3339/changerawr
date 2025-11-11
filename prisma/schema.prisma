@@ -1,11 +1,11 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 model User {
@@ -14,39 +14,39 @@ model User {
   password          String
   name              String?
   role              Role               @default(STAFF)
+  refreshTokens     RefreshToken[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   lastLoginAt       DateTime?
+  settings          Settings?
+  staffRequests     ChangelogRequest[] @relation("StaffRequests")
+  adminResponses    ChangelogRequest[] @relation("AdminResponses")
+  ApiKey            ApiKey[]
+  auditLogs         AuditLog[]         @relation("AuditLogUser")
+  targetAuditLogs   AuditLog[]         @relation("AuditLogTarget")
+  oauthConnections  OAuthConnection[]
+  passwordResets    PasswordReset[]
+  passkeys          Passkey[]
   lastChallenge     String?
   twoFactorMode     TwoFactorMode?     @default(NONE)
-  ApiKey            ApiKey[]
-  targetAuditLogs   AuditLog[]         @relation("AuditLogTarget")
-  auditLogs         AuditLog[]         @relation("AuditLogUser")
-  adminResponses    ChangelogRequest[] @relation("AdminResponses")
-  staffRequests     ChangelogRequest[] @relation("StaffRequests")
-  CliAuthCode       CliAuthCode[]
-  oauthConnections  OAuthConnection[]
-  passkeys          Passkey[]
-  passwordResets    PasswordReset[]
-  refreshTokens     RefreshToken[]
-  settings          Settings?
   twoFactorSessions TwoFactorSession[]
+  CliAuthCode       CliAuthCode[]
 }
 
 model RefreshToken {
   id          String   @id @default(cuid())
   token       String   @unique
   userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   expiresAt   DateTime
   invalidated Boolean  @default(false)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model OAuthProvider {
-  id               String            @id @default(cuid())
+  id               String   @id @default(cuid())
   name             String
   clientId         String
   clientSecret     String
@@ -55,25 +55,26 @@ model OAuthProvider {
   userInfoUrl      String
   callbackUrl      String
   scopes           String[]
-  enabled          Boolean           @default(true)
-  isDefault        Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  connections      OAuthConnection[]
+  enabled          Boolean  @default(true)
+  isDefault        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  connections OAuthConnection[]
 }
 
 model OAuthConnection {
   id             String        @id @default(cuid())
   providerId     String
+  provider       OAuthProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
   userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   providerUserId String
   accessToken    String?
   refreshToken   String?
   expiresAt      DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  provider       OAuthProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, providerUserId])
   @@unique([providerId, userId])
@@ -84,11 +85,11 @@ model OAuthConnection {
 model Settings {
   id                  String   @id @default(cuid())
   userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme               String   @default("light")
+  enableNotifications Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
-  enableNotifications Boolean  @default(true)
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -110,37 +111,55 @@ model InvitationLink {
 model Project {
   id                  String                     @id @default(cuid())
   name                String
+  isPublic            Boolean                    @default(false)
+  allowAutoPublish    Boolean                    @default(false)
+  requireApproval     Boolean                    @default(true)
+  defaultTags         String[]                   @default([])
+  changelog           Changelog?
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
-  allowAutoPublish    Boolean                    @default(false)
-  defaultTags         String[]                   @default([])
-  isPublic            Boolean                    @default(false)
-  requireApproval     Boolean                    @default(true)
-  apiKeys             ApiKey[]
-  changelog           Changelog?
   changelogRequests   ChangelogRequest[]
   emailConfig         EmailConfig?
   emailLogs           EmailLog[]
-  gitHubIntegration   GitHubIntegration?
   ProjectSubscription ProjectSubscription[]
-  syncMetadata        ProjectSyncMetadata?
+  gitHubIntegration   GitHubIntegration?
   analyticsViews      PublicChangelogAnalytics[]
-  syncedCommits       SyncedCommit[]
-  Widget              Widget[]
   customDomains       CustomDomain[]
+  syncMetadata        ProjectSyncMetadata?
+  syncedCommits       SyncedCommit[]
+  apiKeys             ApiKey[]
+  widgets             Widget[]
+}
+
+model Widget {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name      String // "Homepage Widget", "Dashboard Popup", etc.
+  variant   String // 'classic', 'floating', 'modal', 'announcement'
+  settings  Json   @default("{}") // { position: "bottom-right", maxEntries: 5, ... }
+  customCSS String? @db.Text
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([projectId, isActive])
 }
 
 model Passkey {
   id           String    @id @default(cuid())
   userId       String
-  name         String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String // User-friendly name for the passkey
   credentialId String    @unique
-  publicKey    String
+  publicKey    String // Base64 encoded public key
   counter      Int       @default(0)
-  transports   String[]
+  transports   String[] // Transport types (usb, nfc, ble, internal)
   createdAt    DateTime  @default(now())
   lastUsedAt   DateTime?
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([credentialId])
@@ -148,29 +167,29 @@ model Passkey {
 
 model Changelog {
   id        String           @id @default(cuid())
+  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String           @unique
+  entries   ChangelogEntry[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  entries   ChangelogEntry[]
 }
 
 model ChangelogEntry {
   id             String                     @id @default(cuid())
   title          String
-  content        String
+  content        String                     @db.Text
+  excerpt        String?                    @db.Text // First ~300 chars for list views (auto-generated)
   version        String?
   publishedAt    DateTime?
+  scheduledAt    DateTime?
   createdAt      DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
-  changelogId    String
-  scheduledAt    DateTime?
-  excerpt        String?
+  tags           ChangelogTag[]
   changelog      Changelog                  @relation(fields: [changelogId], references: [id], onDelete: Cascade)
+  changelogId    String
   requests       ChangelogRequest[]
   analyticsViews PublicChangelogAnalytics[]
   scheduledJobs  ScheduledJob[]
-  tags           ChangelogTag[]             @relation("ChangelogEntryToChangelogTag")
 
   @@index([changelogId])
   @@index([scheduledAt])
@@ -180,31 +199,31 @@ model ChangelogEntry {
 model ChangelogTag {
   id        String             @id @default(cuid())
   name      String             @unique
+  color     String?
+  entries   ChangelogEntry[]
+  requests  ChangelogRequest[]
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
-  color     String?
-  requests  ChangelogRequest[]
-  entries   ChangelogEntry[]   @relation("ChangelogEntryToChangelogTag")
 }
 
 model ChangelogRequest {
   id               String          @id @default(cuid())
-  staffId          String?
+  type             String // DELETE_PROJECT, DELETE_TAG, DELETE_ENTRY
+  status           String          @default("PENDING") // PENDING, APPROVED, REJECTED
+  staffId          String? // Made nullable to allow user deletion
+  staff            User?           @relation("StaffRequests", fields: [staffId], references: [id], onDelete: SetNull)
   adminId          String?
-  changelogEntryId String?
-  changelogTagId   String?
+  admin            User?           @relation("AdminResponses", fields: [adminId], references: [id], onDelete: SetNull)
+  projectId        String
+  project          Project         @relation(fields: [projectId], references: [id])
+  targetId         String? // For specific items being deleted (e.g., tag id)
   createdAt        DateTime        @default(now())
   reviewedAt       DateTime?
-  projectId        String
-  targetId         String?
-  type             String
-  status           String          @default("PENDING")
-  metadata         Json?
-  admin            User?           @relation("AdminResponses", fields: [adminId], references: [id])
   ChangelogEntry   ChangelogEntry? @relation(fields: [changelogEntryId], references: [id])
+  changelogEntryId String?
   ChangelogTag     ChangelogTag?   @relation(fields: [changelogTagId], references: [id])
-  project          Project         @relation(fields: [projectId], references: [id])
-  staff            User?           @relation("StaffRequests", fields: [staffId], references: [id])
+  changelogTagId   String?
+  metadata         Json? // Store request-specific data (e.g., custom publishedAt for ALLOW_PUBLISH)
 
   @@index([staffId])
   @@index([adminId])
@@ -220,12 +239,12 @@ model ApiKey {
   createdAt   DateTime  @default(now())
   expiresAt   DateTime?
   userId      String
-  permissions String[]
-  isRevoked   Boolean   @default(false)
-  projectId   String?
-  isGlobal    Boolean   @default(false)
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id])
+  projectId   String?   // null = global access, set = project-specific
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  permissions String[]  // Array of permitted actions
+  isRevoked   Boolean   @default(false)
+  isGlobal    Boolean   @default(false) // true = visible to admins, false = private to owner only
 
   @@index([userId])
   @@index([key])
@@ -235,12 +254,12 @@ model ApiKey {
 model AuditLog {
   id           String   @id @default(cuid())
   action       String
-  userId       String?
+  userId       String? // Nullable to allow user deletion
   targetUserId String?
   details      Json?
   createdAt    DateTime @default(now())
-  targetUser   User?    @relation("AuditLogTarget", fields: [targetUserId], references: [id])
-  user         User?    @relation("AuditLogUser", fields: [userId], references: [id])
+  user         User?    @relation("AuditLogUser", fields: [userId], references: [id], onDelete: SetNull)
+  targetUser   User?    @relation("AuditLogTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([targetUserId])
@@ -255,27 +274,28 @@ model SystemConfig {
   maxChangelogEntriesPerProject Int            @default(100)
   enableAnalytics               Boolean        @default(true)
   enableNotifications           Boolean        @default(true)
-  updatedAt                     DateTime       @updatedAt
   enablePasswordReset           Boolean        @default(false)
+  enableAIAssistant             Boolean        @default(false) // Enable/disable AI assistant globally
+  aiApiKey                      String? // Global API key for AI service
+  aiApiProvider                 String?        @default("secton") // AI provider
+  aiDefaultModel                String?        @default("copilot-zero") // Default model to use
   smtpHost                      String?
   smtpPort                      Int?
   smtpUser                      String?
   smtpPassword                  String?
   smtpSecure                    Boolean?
   systemEmail                   String?
-  aiApiKey                      String?
-  aiApiProvider                 String?        @default("secton")
-  aiDefaultModel                String?        @default("copilot-zero")
-  enableAIAssistant             Boolean        @default(false)
   allowTelemetry                TelemetryState @default(PROMPT)
-  createdAt                     DateTime       @default(now())
   telemetryInstanceId           String?        @unique
-  adminOnlyApiKeyCreation       Boolean        @default(false)
+  adminOnlyApiKeyCreation       Boolean        @default(false) // Require admin role to create API keys
+  createdAt                     DateTime       @default(now())
+  updatedAt                     DateTime       @updatedAt
 }
 
 model EmailConfig {
   id             String    @id @default(cuid())
   projectId      String    @unique
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   enabled        Boolean   @default(false)
   smtpHost       String
   smtpPort       Int
@@ -289,25 +309,24 @@ model EmailConfig {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   lastTestedAt   DateTime?
-  testStatus     String?
-  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  testStatus     String? // "success", "failed", error message
 }
 
 model EmailLog {
   id         String   @id @default(cuid())
   projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   recipients String[]
   subject    String
   messageId  String?
-  type       String
+  type       String // "SINGLE_UPDATE" or "DIGEST"
   entryIds   String[]
   createdAt  DateTime @default(now())
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model EmailSubscriber {
   id               String                @id @default(cuid())
-  email            String                @unique
+  email            String
   name             String?
   isActive         Boolean               @default(true)
   unsubscribeToken String                @unique
@@ -316,6 +335,7 @@ model EmailSubscriber {
   lastEmailSentAt  DateTime?
   subscriptions    ProjectSubscription[]
 
+  @@unique([email])
   @@index([email])
   @@index([unsubscribeToken])
 }
@@ -323,13 +343,13 @@ model EmailSubscriber {
 model ProjectSubscription {
   id               String           @id @default(cuid())
   projectId        String
+  customDomain     String? // domain subscribed from ( optional )
+  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   subscriberId     String
+  subscriber       EmailSubscriber  @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
   subscriptionType SubscriptionType @default(ALL_UPDATES)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
-  customDomain     String?
-  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  subscriber       EmailSubscriber  @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, subscriberId])
   @@index([projectId])
@@ -341,11 +361,11 @@ model PasswordReset {
   id        String    @id @default(cuid())
   token     String    @unique
   userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   email     String
   expiresAt DateTime
   createdAt DateTime  @default(now())
   usedAt    DateTime?
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@index([userId])
@@ -355,10 +375,10 @@ model PasswordReset {
 model TwoFactorSession {
   id        String        @id @default(cuid())
   userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      TwoFactorMode
   expiresAt DateTime
   createdAt DateTime      @default(now())
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -367,8 +387,9 @@ model TwoFactorSession {
 model GitHubIntegration {
   id                     String    @id @default(cuid())
   projectId              String    @unique
+  project                Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   repositoryUrl          String
-  accessToken            String
+  accessToken            String // Encrypted access token
   defaultBranch          String    @default("main")
   lastSyncAt             DateTime?
   lastCommitSha          String?
@@ -380,24 +401,25 @@ model GitHubIntegration {
   enabled                Boolean   @default(true)
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
-  project                Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([enabled])
 }
 
 model PublicChangelogAnalytics {
-  id               String          @id @default(cuid())
+  id               String   @id @default(cuid())
   projectId        String
   changelogEntryId String?
-  ipHash           String
-  country          String?
-  userAgent        String?
-  referrer         String?
-  viewedAt         DateTime        @default(now())
-  sessionHash      String
-  changelogEntry   ChangelogEntry? @relation(fields: [changelogEntryId], references: [id])
-  project          Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ipHash           String // Hashed IP for privacy
+  country          String? // Country from IP geolocation
+  userAgent        String? // Browser info
+  referrer         String? // Referring URL
+  viewedAt         DateTime @default(now())
+  sessionHash      String // Session identifier for unique visits
+
+  // Relations
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  changelogEntry ChangelogEntry? @relation(fields: [changelogEntryId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
   @@index([changelogEntryId])
@@ -414,9 +436,12 @@ model CustomDomain {
   verified          Boolean   @default(false)
   createdAt         DateTime  @default(now())
   verifiedAt        DateTime?
-  userId            String?
-  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId            String? // Optional: link to user who owns this domain
 
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Indexes
   @@index([domain])
   @@index([projectId])
   @@index([userId])
@@ -427,18 +452,19 @@ model CustomDomain {
 model ScheduledJob {
   id               String           @id @default(cuid())
   type             ScheduledJobType
-  entityId         String
-  scheduledAt      DateTime
-  executedAt       DateTime?
+  entityId         String // ID of the entity (e.g., ChangelogEntry ID)
+  scheduledAt      DateTime // When to execute
+  executedAt       DateTime? // When it was actually executed
   status           JobStatus        @default(PENDING)
-  errorMessage     String?
+  errorMessage     String? // Error details if failed
   retryCount       Int              @default(0)
   maxRetries       Int              @default(3)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+  ChangelogEntry   ChangelogEntry?  @relation(fields: [changelogEntryId], references: [id], onDelete: SetNull)
   changelogEntryId String?
-  ChangelogEntry   ChangelogEntry?  @relation(fields: [changelogEntryId], references: [id])
 
+  // Relations
   @@index([type])
   @@index([entityId])
   @@index([scheduledAt])
@@ -454,7 +480,8 @@ model CliAuthCode {
   expiresAt   DateTime
   usedAt      DateTime?
   createdAt   DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([code])
   @@index([userId])
@@ -471,7 +498,8 @@ model ProjectSyncMetadata {
   branch             String    @default("main")
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
-  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([lastSyncedAt])
@@ -485,38 +513,23 @@ model SyncedCommit {
   commitAuthor      String
   commitEmail       String
   commitDate        DateTime
-  commitFiles       String[]
-  conventionalType  String?
-  conventionalScope String?
+  commitFiles       String[] // Array of file paths
+  conventionalType  String? // feat, fix, docs, etc.
+  conventionalScope String? // Optional scope from conventional commits
   isBreaking        Boolean  @default(false)
-  commitBody        String?
-  commitFooter      String?
+  commitBody        String? // Optional commit body
+  commitFooter      String? // Optional commit footer
   syncedAt          DateTime @default(now())
   branch            String   @default("main")
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, commitHash])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, commitHash]) // Prevent duplicate commits per project
   @@index([projectId])
   @@index([commitHash])
   @@index([syncedAt])
   @@index([conventionalType])
   @@index([branch])
-}
-
-model Widget {
-  id        String   @id
-  projectId String
-  name      String
-  variant   String
-  settings  Json     @default("{}")
-  customCSS String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([projectId, isActive])
 }
 
 enum ScheduledJobType {
@@ -567,13 +580,13 @@ enum emailType {
 }
 
 enum SubscriptionType {
-  ALL_UPDATES
-  MAJOR_ONLY
-  DIGEST_ONLY
+  ALL_UPDATES // Receive all updates
+  MAJOR_ONLY // Only receive major version updates
+  DIGEST_ONLY // Only receive digest emails
 }
 
 enum TwoFactorMode {
-  NONE
-  PASSKEY_PLUS_PASSWORD
-  PASSWORD_PLUS_PASSKEY
+  NONE // No additional security
+  PASSKEY_PLUS_PASSWORD // Passkey login requires password
+  PASSWORD_PLUS_PASSKEY // Password login requires passkey
 }
