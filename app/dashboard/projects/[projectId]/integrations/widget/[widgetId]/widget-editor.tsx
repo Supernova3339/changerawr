@@ -109,7 +109,7 @@ export default function WidgetEditor({widget: initialWidget, projectId}: WidgetE
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const getEmbedCode = (language: string) => {
-        const scriptUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/widget/${projectId}/${widget.id}`;
+        const scriptUrl = `${window.location.origin}/api/integrations/widget/${projectId}/${widget.id}`;
 
         switch (language) {
             case 'HTML':
@@ -241,7 +241,7 @@ func ChangelogWidget() template.HTML {
     };
 
     const copyEmbedCode = () => {
-        const code = `<script src="${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/widget/${projectId}/${widget.id}" async></script>`;
+        const code = `<script src="${window.location.origin}/api/integrations/widget/${projectId}/${widget.id}" async></script>`;
         navigator.clipboard.writeText(code);
         setCopied(true);
         toast({title: 'Success', description: 'Embed code copied!'});
@@ -253,7 +253,7 @@ func ChangelogWidget() template.HTML {
     };
 
     const getPreviewHTML = () => {
-        const scriptUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/widget/${projectId}/${widget.id}`;
+        const scriptUrl = `${window.location.origin}/api/integrations/widget/${projectId}/${widget.id}`;
 
         // Different preview layouts based on variant
         const variantSpecificContent = {

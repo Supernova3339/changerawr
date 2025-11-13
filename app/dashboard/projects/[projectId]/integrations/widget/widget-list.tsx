@@ -83,7 +83,7 @@ export default function WidgetList({ projectId, initialWidgets, project }: Widge
     };
 
     const copyEmbedCode = (widgetId: string) => {
-        const code = `<script src="${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/widget/${projectId}/${widgetId}" async></script>`;
+        const code = `<script src="${window.location.origin}/api/integrations/widget/${projectId}/${widgetId}" async></script>`;
         navigator.clipboard.writeText(code);
         setCopiedId(widgetId);
         toast({ title: 'Success', description: 'Embed code copied!' });

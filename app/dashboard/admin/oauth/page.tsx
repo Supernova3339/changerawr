@@ -818,7 +818,7 @@ export default function OAuthProvidersPage() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => {
-                                                const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/oauth/callback/${createForm.watch('name')?.toLowerCase().replace(/\s+/g, '-') || 'provider'}`;
+                                                const url = `${window.location.origin}/api/auth/oauth/callback/${createForm.watch('name')?.toLowerCase().replace(/\s+/g, '-') || 'provider'}`;
                                                 navigator.clipboard.writeText(url);
                                                 toast({
                                                     title: 'Copied to clipboard',
@@ -833,7 +833,7 @@ export default function OAuthProvidersPage() {
                                     <div className="flex items-center gap-2">
                                         <code
                                             className="flex-1 p-2 text-xs bg-background rounded border overflow-x-auto text-muted-foreground">
-                                            {`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/oauth/callback/${createForm.watch('name')?.toLowerCase().replace(/\s+/g, '-') || 'provider'}`}
+                                            {`${window.location.origin}/api/auth/oauth/callback/${createForm.watch('name')?.toLowerCase().replace(/\s+/g, '-') || 'provider'}`}
                                         </code>
                                     </div>
                                     <FormDescription>
