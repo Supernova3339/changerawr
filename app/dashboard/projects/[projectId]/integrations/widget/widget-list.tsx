@@ -183,7 +183,7 @@ export default function WidgetList({ projectId, initialWidgets, project }: Widge
                                     <Label className="text-xs text-muted-foreground">Embed Code</Label>
                                     <div className="flex gap-2">
                                         <code className="flex-1 px-3 py-2 bg-muted rounded text-sm font-mono overflow-x-auto">
-                                            {`<script src="${process.env.NEXT_PUBLIC_APP_URL}/api/integrations/widget/${projectId}/${widget.id}" async></script>`}
+                                            {`<script src="${window.location.origin}/api/integrations/widget/${projectId}/${widget.id}" async></script>`}
                                         </code>
                                         <Button
                                             variant="outline"
