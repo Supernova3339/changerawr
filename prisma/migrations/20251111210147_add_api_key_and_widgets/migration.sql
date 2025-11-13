@@ -1,5 +1,5 @@
 -- DropIndex
-DROP INDEX "ScheduledJob_changelogEntryId_idx";
+DROP INDEX IF EXISTS "ScheduledJob_changelogEntryId_idx";
 
 -- AlterTable
 ALTER TABLE "ApiKey" ADD COLUMN     "isGlobal" BOOLEAN NOT NULL DEFAULT false,
