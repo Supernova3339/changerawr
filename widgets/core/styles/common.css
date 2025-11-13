@@ -24,6 +24,16 @@
                 transform var(--changerawr-transition-speed) var(--changerawr-transition-easing);
 }
 
+/* Floating widget specific overrides */
+.changerawr-widget.changerawr-floating {
+    width: auto;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+}
+
 /* ============================================
    POPUP MODE
    ============================================ */

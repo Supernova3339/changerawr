@@ -165,36 +165,42 @@
    ============================================ */
 .changerawr-theme-dark {
     /* Colors - Background */
-    --changerawr-bg-primary: #1a1a1a;
-    --changerawr-bg-secondary: #2d2d2d;
-    --changerawr-bg-tertiary: #333333;
-    --changerawr-bg-hover: #333333;
+    --changerawr-bg-primary: #1f2937;
+    --changerawr-bg-secondary: #111827;
+    --changerawr-bg-tertiary: #374151;
+    --changerawr-bg-hover: #374151;
 
     /* Colors - Text */
-    --changerawr-text-primary: #ffffff;
-    --changerawr-text-secondary: #999999;
-    --changerawr-text-tertiary: #666666;
+    --changerawr-text-primary: #f3f4f6;
+    --changerawr-text-secondary: #d1d5db;
+    --changerawr-text-tertiary: #9ca3af;
 
     /* Colors - Primary (lighter for dark backgrounds) */
     --changerawr-primary-color: #60a5fa;
-    --changerawr-primary-hover: #3b82f6;
-    --changerawr-primary-active: #2563eb;
-    --changerawr-primary-light: #1a365d;
+    --changerawr-primary-hover: #93c5fd;
+    --changerawr-primary-active: #3b82f6;
+    --changerawr-primary-light: #1e3a8a;
     --changerawr-primary-dark: #60a5fa;
 
-    /* Colors - Borders */
-    --changerawr-border-color: #333333;
-    --changerawr-border-color-light: #404040;
-    --changerawr-border-color-dark: #333333;
+    /* Colors - Semantic */
+    --changerawr-success-color: #34d399;
+    --changerawr-warning-color: #fbbf24;
+    --changerawr-danger-color: #f87171;
+    --changerawr-info-color: #60a5fa;
 
-    /* Shadows (darker for dark theme) */
-    --changerawr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --changerawr-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --changerawr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-    --changerawr-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+    /* Colors - Borders */
+    --changerawr-border-color: #4b5563;
+    --changerawr-border-color-light: #374151;
+    --changerawr-border-color-dark: #1f2937;
+
+    /* Shadows (stronger for dark theme) */
+    --changerawr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --changerawr-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.6);
+    --changerawr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.7);
+    --changerawr-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.8);
 
     /* Spinner colors */
-    --changerawr-spinner-track: #333333;
+    --changerawr-spinner-track: #4b5563;
     --changerawr-spinner-color: var(--changerawr-primary-color);
 }
 

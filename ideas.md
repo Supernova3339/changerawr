@@ -38,7 +38,7 @@
 
 # widget ideas
 - [x] classic widget
-- [ ] floating widget ( needs fixes, perhaps full rewrite! ) - last thing to do before launching v1.0.5!
+- [x] floating widget ( needs fixes, perhaps full rewrite! ) - last thing to do before launching v1.0.5!
 - [x] announcement bar widget
 - [x] modal widget
 

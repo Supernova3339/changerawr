@@ -1,158 +1,557 @@
 /**
  * Floating Widget Styles
+ * Styles for the floating changelog widget variant
  */
 
+/* ============================================
+   FLOATING WIDGET CONTAINER
+   ============================================ */
 .changerawr-floating {
     position: fixed;
-    z-index: var(--changerawr-z-index, 9999);
+    z-index: var(--changerawr-z-index, 999999);
 }
 
-/* Position classes */
-.changerawr-position-bottom-right {
+/* ============================================
+   POSITION CLASSES
+   ============================================ */
+.changerawr-floating.changerawr-position-bottom-right {
     bottom: var(--changerawr-spacing-lg, 1.5rem);
     right: var(--changerawr-spacing-lg, 1.5rem);
 }
 
-.changerawr-position-bottom-left {
+.changerawr-floating.changerawr-position-bottom-left {
     bottom: var(--changerawr-spacing-lg, 1.5rem);
     left: var(--changerawr-spacing-lg, 1.5rem);
 }
 
-.changerawr-position-top-right {
+.changerawr-floating.changerawr-position-top-right {
     top: var(--changerawr-spacing-lg, 1.5rem);
     right: var(--changerawr-spacing-lg, 1.5rem);
 }
 
-.changerawr-position-top-left {
+.changerawr-floating.changerawr-position-top-left {
     top: var(--changerawr-spacing-lg, 1.5rem);
     left: var(--changerawr-spacing-lg, 1.5rem);
 }
 
-/* Floating button */
-.changerawr-floating-button {
+/* ============================================
+   WRAPPER (for positioning context)
+   ============================================ */
+.changerawr-floating-wrapper {
     position: relative;
-    display: flex;
+    display: inline-block;
+}
+
+/* ============================================
+   FLOATING BUTTON
+   ============================================ */
+.changerawr-floating-button {
+    display: inline-flex;
     align-items: center;
-    gap: var(--changerawr-spacing-sm, 0.5rem);
-    padding: var(--changerawr-spacing-md, 0.75rem) var(--changerawr-spacing-lg, 1rem);
+    justify-content: center;
+    padding: 10px 14px;
     background: var(--changerawr-primary-color, #0066ff);
     color: #ffffff;
     border: none;
-    border-radius: var(--changerawr-border-radius-full, 999px);
+    border-radius: 6px;
     font-family: var(--changerawr-font-family);
-    font-size: var(--changerawr-font-size-base, 14px);
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: var(--changerawr-shadow-lg, 0 10px 40px rgba(0, 0, 0, 0.15));
-    transition: all var(--changerawr-animation-duration, 0.3s) var(--changerawr-animation-easing, ease);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    position: relative;
+    gap: 10px;
 }
 
 .changerawr-floating-button:hover {
     transform: translateY(-2px);
-    box-shadow: var(--changerawr-shadow-xl, 0 20px 60px rgba(0, 0, 0, 0.2));
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
 .changerawr-floating-button:active {
     transform: translateY(0);
 }
 
+.changerawr-floating-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.3);
+}
+
+/* ============================================
+   BUTTON CONTENT
+   ============================================ */
+.changerawr-floating-button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+}
+
 .changerawr-floating-icon {
     font-size: 1.2em;
+    flex-shrink: 0;
 }
 
 .changerawr-floating-text {
     white-space: nowrap;
 }
 
-/* Badge */
+/* ============================================
+   BADGE
+   ============================================ */
 .changerawr-floating-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -6px;
+    right: -6px;
     display: flex;
     align-items: center;
     justify-content: center;
     min-width: 20px;
     height: 20px;
-    padding: 0 6px;
-    background: var(--changerawr-error-color, #ef4444);
+    padding: 0 5px;
+    background: var(--changerawr-danger-color, #ef4444);
     color: #ffffff;
-    border-radius: var(--changerawr-border-radius-full, 999px);
+    border-radius: 999px;
     font-size: 11px;
     font-weight: 700;
     line-height: 1;
     border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Floating panel */
+/* ============================================
+   FLOATING PANEL
+   ============================================ */
 .changerawr-floating-panel {
     position: absolute;
-    bottom: calc(100% + var(--changerawr-spacing-md, 0.75rem));
+    bottom: calc(100% + 8px);
     right: 0;
-    width: 400px;
+    width: 380px;
     max-width: calc(100vw - 2rem);
-    max-height: 600px;
+    max-height: 550px;
     background: var(--changerawr-bg-primary, #ffffff);
-    border-radius: var(--changerawr-border-radius-lg, 12px);
-    box-shadow: var(--changerawr-shadow-xl, 0 20px 60px rgba(0, 0, 0, 0.15));
-    display: flex;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    display: none;
     flex-direction: column;
     overflow: hidden;
     opacity: 0;
     transform: translateY(10px) scale(0.95);
-    transition: all var(--changerawr-animation-duration, 0.3s) var(--changerawr-animation-easing, ease);
-    pointer-events: none;
-    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 100;
 }
 
-.changerawr-floating.open .changerawr-floating-panel {
+.changerawr-floating-panel-open {
     opacity: 1;
     transform: translateY(0) scale(1);
-    pointer-events: auto;
-    visibility: visible;
 }
 
-/* Position-specific panel adjustments */
+/* Panel positioning based on widget position */
 .changerawr-position-bottom-left .changerawr-floating-panel {
     right: auto;
     left: 0;
 }
 
-.changerawr-position-top-right .changerawr-floating-panel,
+.changerawr-position-top-right .changerawr-floating-panel {
+    bottom: auto;
+    top: calc(100% + 8px);
+    right: 0;
+}
+
 .changerawr-position-top-left .changerawr-floating-panel {
     bottom: auto;
-    top: calc(100% + var(--changerawr-spacing-md, 0.75rem));
+    top: calc(100% + 8px);
+    right: auto;
+    left: 0;
 }
 
-/* Entries container in floating panel */
-.changerawr-floating-panel .changerawr-entries {
+/* ============================================
+   PANEL HEADER
+   ============================================ */
+.changerawr-floating-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--changerawr-border-color, #eaeaea);
+    flex-shrink: 0;
+}
+
+.changerawr-floating-panel-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--changerawr-text-primary, #1a1a1a);
+}
+
+.changerawr-floating-close-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--changerawr-text-secondary, #666666);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+}
+
+.changerawr-floating-close-btn:hover {
+    opacity: 1;
+}
+
+.changerawr-floating-close-btn:focus {
+    outline: none;
+    opacity: 1;
+}
+
+/* ============================================
+   PANEL CONTENT
+   ============================================ */
+.changerawr-floating-panel-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--changerawr-spacing-md, 0.75rem);
+    overflow-x: hidden;
+    padding: 0;
 }
 
-/* Dark mode */
-.changerawr-floating.dark .changerawr-floating-button {
-    background: var(--changerawr-primary-color-dark, #3b82f6);
+/* Scrollbar styling */
+.changerawr-floating-panel-content::-webkit-scrollbar {
+    width: 6px;
 }
 
-.changerawr-floating.dark .changerawr-floating-panel {
-    background: var(--changerawr-bg-primary-dark, #1f2937);
+.changerawr-floating-panel-content::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-/* Mobile responsiveness */
+.changerawr-floating-panel-content::-webkit-scrollbar-thumb {
+    background: var(--changerawr-border-color, #eaeaea);
+    border-radius: 3px;
+}
+
+.changerawr-floating-panel-content::-webkit-scrollbar-thumb:hover {
+    background: var(--changerawr-text-secondary, #999999);
+}
+
+/* ============================================
+   ENTRY ITEM
+   ============================================ */
+.changerawr-floating-entry {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--changerawr-border-color-light, #f5f5f5);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.changerawr-floating-entry:last-child {
+    border-bottom: none;
+}
+
+.changerawr-floating-entry:hover {
+    background-color: var(--changerawr-bg-hover, #f5f5f5);
+}
+
+/* ============================================
+   ENTRY META (Tags)
+   ============================================ */
+.changerawr-floating-entry-meta {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.changerawr-floating-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    background: var(--changerawr-primary-light, #e8f2ff);
+    color: var(--changerawr-primary-color, #0066ff);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ============================================
+   ENTRY TITLE
+   ============================================ */
+.changerawr-floating-entry-title {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--changerawr-text-primary, #1a1a1a);
+    line-height: 1.4;
+}
+
+/* ============================================
+   ENTRY CONTENT
+   ============================================ */
+.changerawr-floating-entry-content {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: var(--changerawr-text-secondary, #666666);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ============================================
+   READ MORE LINK
+   ============================================ */
+.changerawr-floating-read-more {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--changerawr-primary-color, #0066ff);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 4px 0;
+}
+
+.changerawr-floating-read-more:hover {
+    text-decoration: underline;
+    color: var(--changerawr-primary-hover, #0052cc);
+}
+
+.changerawr-floating-read-more:focus {
+    outline: none;
+    text-decoration: underline;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.changerawr-floating-empty {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--changerawr-text-secondary, #666666);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.changerawr-floating-empty-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.changerawr-floating-empty-message {
+    font-size: 14px;
+}
+
+/* ============================================
+   PANEL FOOTER
+   ============================================ */
+.changerawr-floating-panel-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--changerawr-border-color, #eaeaea);
+    font-size: 12px;
+    color: var(--changerawr-text-secondary, #666666);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.changerawr-floating-panel-footer a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.changerawr-floating-panel-footer a:hover {
+    text-decoration: underline;
+    color: var(--changerawr-text-primary, #1a1a1a);
+}
+
+/* ============================================
+   DARK THEME
+   ============================================ */
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-button {
+    background: var(--changerawr-primary-color, #60a5fa);
+    color: #ffffff;
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-button:hover {
+    background: var(--changerawr-primary-hover, #93c5fd);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel {
+    background: var(--changerawr-bg-primary, #1f2937);
+    color: var(--changerawr-text-primary, #f3f4f6);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel-header {
+    border-color: var(--changerawr-border-color, #4b5563);
+    background: var(--changerawr-bg-secondary, #111827);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel-title {
+    color: var(--changerawr-text-primary, #f3f4f6);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-close-btn {
+    color: var(--changerawr-text-secondary, #d1d5db);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel-content {
+    background: var(--changerawr-bg-primary, #1f2937);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-entry {
+    border-color: var(--changerawr-border-color-light, #374151);
+    color: var(--changerawr-text-primary, #f3f4f6);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-entry:hover {
+    background-color: var(--changerawr-bg-hover, #374151);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-entry-title {
+    color: var(--changerawr-text-primary, #f3f4f6);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-entry-content {
+    color: var(--changerawr-text-secondary, #d1d5db);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-tag {
+    background: var(--changerawr-primary-light, #1e3a8a);
+    color: var(--changerawr-primary-color, #60a5fa);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-read-more {
+    color: var(--changerawr-primary-color, #60a5fa);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-read-more:hover {
+    color: var(--changerawr-primary-hover, #93c5fd);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel-footer {
+    border-color: var(--changerawr-border-color, #4b5563);
+    background: var(--changerawr-bg-secondary, #111827);
+    color: var(--changerawr-text-secondary, #d1d5db);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel-footer a {
+    color: var(--changerawr-text-secondary, #d1d5db);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-panel-footer a:hover {
+    color: var(--changerawr-text-primary, #f3f4f6);
+}
+
+.changerawr-floating.changerawr-theme-dark .changerawr-floating-empty {
+    color: var(--changerawr-text-secondary, #d1d5db);
+}
+
+/* ============================================
+   MOBILE RESPONSIVENESS
+   ============================================ */
 @media (max-width: 640px) {
     .changerawr-floating-panel {
         width: calc(100vw - 2rem);
+        max-width: none;
         max-height: 500px;
-    }
-
-    .changerawr-floating-button {
-        padding: var(--changerawr-spacing-sm, 0.5rem) var(--changerawr-spacing-md, 0.75rem);
-        font-size: 13px;
     }
 
     .changerawr-floating-text {
         display: none;
+    }
+
+    .changerawr-floating-button {
+        padding: 12px;
+        width: 56px;
+        height: 56px;
+    }
+
+    .changerawr-floating-button-content {
+        gap: 0;
+    }
+
+    .changerawr-floating-entry {
+        padding: 10px 12px;
+    }
+
+    .changerawr-floating-panel-header {
+        padding: 12px;
+    }
+
+    .changerawr-floating-panel-footer {
+        padding: 10px 12px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .changerawr-floating {
+        bottom: 0 !important;
+        right: 0 !important;
+        left: 0 !important;
+        top: auto !important;
+    }
+
+    .changerawr-floating-panel {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        top: auto;
+        width: 100vw;
+        max-width: 100vw;
+        max-height: 80vh;
+        border-radius: 12px 12px 0 0;
+        bottom: 0;
+    }
+
+    .changerawr-floating-button {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 0;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY - REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+    .changerawr-floating-button,
+    .changerawr-floating-panel,
+    .changerawr-floating-entry,
+    .changerawr-floating-close-btn,
+    .changerawr-floating-read-more {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY - HIGH CONTRAST
+   ============================================ */
+@media (prefers-contrast: high) {
+    .changerawr-floating-button {
+        border: 2px solid var(--changerawr-border-color, #eaeaea);
+    }
+
+    .changerawr-floating-entry {
+        border-bottom-width: 2px;
+    }
+
+    .changerawr-floating-tag {
+        border: 1px solid currentColor;
     }
 }
