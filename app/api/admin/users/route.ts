@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 
 // Validation schemas
 const createInvitationSchema = z.object({
-    email: z.string().email(),
+    email: z.string().toLowerCase().email(),
     role: z.enum(['ADMIN', 'STAFF']),
     expiresAt: z.string().datetime().optional()
 });
