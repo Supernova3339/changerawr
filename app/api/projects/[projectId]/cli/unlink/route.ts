@@ -85,18 +85,12 @@ export async function POST(
             return NextResponse.json(errorResponse, {status: 404});
         }
 
-        // Check if project is linked
-        if (!project.syncMetadata) {
-            const errorResponse: ProjectApiError = {
-                success: false,
-                error: 'Project not linked',
-                message: 'This project is not linked to any repository',
-                code: 'PROJECT_NOT_LINKED'
-            };
-            return NextResponse.json(errorResponse, {status: 404});
-        }
-
         const unlinkedAt = new Date();
+
+        // Force delete all sync metadata for this project (in case there are orphaned records)
+        await db.projectSyncMetadata.deleteMany({
+            where: {projectId: project.id}
+        });
 
         // Handle data preservation or deletion
         if (!validatedData.preserveData) {
@@ -105,11 +99,6 @@ export async function POST(
                 where: {projectId: project.id}
             });
         }
-
-        // Delete sync metadata
-        await db.projectSyncMetadata.delete({
-            where: {id: project.syncMetadata.id}
-        });
 
         // Update project
         await db.project.update({
@@ -129,7 +118,7 @@ export async function POST(
                     reason: validatedData.reason,
                     preserveData: validatedData.preserveData,
                     commitCount: project.syncedCommits.length,
-                    repositoryUrl: project.syncMetadata.repositoryUrl,
+                    repositoryUrl: project.syncMetadata?.repositoryUrl || 'Unknown',
                     unlinkedAt: unlinkedAt.toISOString()
                 }
             );
@@ -141,9 +130,11 @@ export async function POST(
         // Create response
         const unlinkResponse: ProjectUnlinkResponse = {
             success: true,
-            message: validatedData.preserveData
-                ? 'Project unlinked successfully (data preserved)'
-                : 'Project unlinked successfully (data removed)',
+            message: !project.syncMetadata
+                ? 'Project was not linked, but any orphaned sync data has been cleaned up'
+                : validatedData.preserveData
+                    ? 'Project unlinked successfully (data preserved)'
+                    : 'Project unlinked successfully (data removed)',
             unlinkedAt: unlinkedAt.toISOString()
         };
 
