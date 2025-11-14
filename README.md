@@ -121,19 +121,20 @@ The easiest way to add changelogs to your site - perfect for non-technical users
 
 ### Widget Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `data-theme` | string | "light" | Theme: "light" or "dark" |
-| `data-position` | string | "bottom-right" | Popup position |
-| `data-max-height` | string | "400px" | Maximum height |
-| `data-popup` | boolean | false | Enable popup mode |
-| `data-trigger` | string | null | Button ID or "immediate" |
+| Option | Type    |     Default     | Description |
+|--------|---------|:---------------:|-------------|
+| `data-theme` | string  |     "light"     | Theme: "light" or "dark" |
+| `data-position` | string  | "bottom-right"  | Popup position |
+| `data-max-height` | string  |     "400px"     | Maximum height |
+| `data-popup` | boolean |      false      | Enable popup mode |
+| `data-trigger` | string  |      null       | Button ID or "immediate" |
+ | `data-max-entries` | number  |        3        | Amount of entries to display, min 3 max 10
 
 ## 🛠️ Tech Stack
 
 **Built with modern, reliable technologies:**
 
-- **Next.js 15** - React framework with App Router
+- **Next.js 16** - React framework with App Router
 - **Prisma ORM** - Type-safe database access
 - **PostgreSQL** - Robust, scalable database
 - **Shadcn/UI** - Beautiful, accessible UI components
@@ -202,6 +203,7 @@ docker run -p 3000:3000 \
 npm run build
 npx prisma migrate deploy
 npm run build:widget
+npm run generate-swagger
 npm start:with-maintenance
 ```
 
