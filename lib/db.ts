@@ -1,16 +1,21 @@
-import { PrismaClient } from "@prisma/client";
+import {PrismaClient} from "@prisma/client";
 
-declare global {
-    // eslint-disable-next-line no-var
-    var cachedPrisma: PrismaClient;
-}
+// Create a singleton function for Prisma Client
+const prismaClientSingleton = () => {
+    return new PrismaClient();
+};
 
-export let db: PrismaClient;
-if (process.env.NODE_ENV === "production") {
-    db = new PrismaClient();
-} else {
-    if (!global.cachedPrisma) {
-        global.cachedPrisma = new PrismaClient();
-    }
-    db = global.cachedPrisma;
+// Declare global type to avoid TypeScript errors
+declare const globalThis: {
+    prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
+
+// Use globalThis instead of global for better compatibility
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+
+export {prisma as db};
+
+// Only cache in development to prevent multiple instances during hot reload
+if (process.env.NODE_ENV !== "production") {
+    globalThis.prismaGlobal = prisma;
 }

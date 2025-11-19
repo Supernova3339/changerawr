@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { db } from '@/lib/db'
-import { hashPassword } from '@/lib/auth/password'
-import { Role } from '@prisma/client'
+import {NextResponse} from 'next/server'
+import {z} from 'zod'
+import {db} from '@/lib/db'
+import {hashPassword} from '@/lib/auth/password'
+import {Role} from '@prisma/client'
 
 /**
  * Schema for validating admin user request body.
@@ -61,11 +61,19 @@ const adminSchema = z.object({
 export async function POST(request: Request) {
     try {
         // Check if setup is already complete
-        const userCount = await db.user.count()
+        const userCount = await db.user.count({
+            where: {
+                email: {
+                    not: {
+                        endsWith: '@changerawr.sys'
+                    }
+                }
+            }
+        });
         if (userCount > 0) {
             return NextResponse.json(
-                { error: 'Setup has already been completed' },
-                { status: 403 }
+                {error: 'Setup has already been completed'},
+                {status: 403}
             )
         }
 
@@ -103,14 +111,14 @@ export async function POST(request: Request) {
                     error: 'Invalid input',
                     details: error.errors,
                 },
-                { status: 400 }
+                {status: 400}
             )
         }
 
         console.error('Admin setup error:', error)
         return NextResponse.json(
-            { error: 'Failed to create admin account' },
-            { status: 500 }
+            {error: 'Failed to create admin account'},
+            {status: 500}
         )
     }
 }
@@ -130,7 +138,7 @@ export async function POST(request: Request) {
  */
 export async function GET() {
     return NextResponse.json(
-        { error: 'Method not allowed' },
-        { status: 405 }
+        {error: 'Method not allowed'},
+        {status: 405}
     )
 }

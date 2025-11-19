@@ -37,7 +37,8 @@ import {
     AlertTriangle,
     Shield,
     RefreshCw,
-    ArrowRight
+    ArrowRight,
+    Key
 } from 'lucide-react'
 import {ProviderLogo} from "@/components/sso/ProviderLogo";
 
@@ -533,8 +534,6 @@ export default function LoginPage() {
                                                 <div className="space-y-2">
                                                     <Label htmlFor="email">Email address</Label>
                                                     <div className="relative">
-                                                        <Mail
-                                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                                                         <Input
                                                             id="email"
                                                             {...emailForm.register('email')}
@@ -543,6 +542,7 @@ export default function LoginPage() {
                                                             className="h-11 pl-10"
                                                             autoComplete="email"
                                                             autoFocus
+                                                            startIcon={<Mail/>}
                                                         />
                                                     </div>
                                                     {emailForm.formState.errors.email && (
@@ -692,6 +692,7 @@ export default function LoginPage() {
                                                             className="h-11 pl-10 pr-10"
                                                             autoComplete="current-password"
                                                             autoFocus
+                                                            startIcon={<Key/>}
                                                         />
                                                         <Button
                                                             type="button" variant="ghost"

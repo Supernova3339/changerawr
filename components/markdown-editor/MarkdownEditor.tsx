@@ -2,7 +2,8 @@
 
 'use client';
 
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
+import {useDebounce} from 'use-debounce';
 import {Badge} from '@/components/ui/badge';
 import {
     Bold,
@@ -22,8 +23,8 @@ import {
 // Import existing components
 import MarkdownToolbar, {ToolbarGroup, ToolbarDropdown} from '@/components/markdown-editor/MarkdownToolbar';
 
-// Import our NEW markdown renderer
-import {renderMarkdown, debugMarkdown, parseMarkdown} from '@/lib/services/core/markdown';
+// Import our markdown renderer with custom extensions
+import {renderMarkdown} from '@/lib/services/core/markdown/useCustomExtensions';
 
 // Import AI integration
 import useAIAssistant from '@/hooks/useAIAssistant';
@@ -31,7 +32,7 @@ import {AICompletionType} from '@/lib/utils/ai/types';
 import AIAssistantPanel from '@/components/markdown-editor/ai/AIAssistantPanel';
 
 // Import CUM modals
-import {CUMButtonModal, CUMAlertModal, CUMEmbedModal} from '@/components/markdown-editor/modals';
+import {CUMButtonModal, CUMAlertModal, CUMEmbedModal, CUMTableModal} from '@/components/markdown-editor/modals';
 import {useCUMModals} from '@/components/markdown-editor/hooks/useCUMModals';
 
 export interface MarkdownEditorProps {
@@ -106,7 +107,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         }
     }, [autoFocus]);
 
-    // History management
+    // Debounced content for preview rendering (300ms delay)
+    const [debouncedContent] = useDebounce(content, 300);
+
+    // History management with debouncing
     const addToHistory = useCallback((newContent: string) => {
         setHistory(prev => {
             const newHistory = prev.slice(0, historyIndex + 1);
@@ -117,13 +121,20 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         setHistoryIndex(prev => Math.min(prev + 1, 49));
     }, [historyIndex]);
 
-    // Content change handler
+    // Debounced history additions (2 seconds - only add to history when user pauses)
+    const [debouncedContentForHistory] = useDebounce(content, 2000);
+    useEffect(() => {
+        if (debouncedContentForHistory && debouncedContentForHistory !== history[historyIndex]) {
+            addToHistory(debouncedContentForHistory);
+        }
+    }, [debouncedContentForHistory, historyIndex, history, addToHistory]);
+
+    // Content change handler (no longer adds to history immediately)
     const handleContentChange = useCallback((newContent: string) => {
         setContent(newContent);
         setIsSaved(false);
         onChange?.(newContent);
-        addToHistory(newContent);
-    }, [onChange, addToHistory]);
+    }, [onChange]);
 
     // Undo/Redo
     const canUndo = historyIndex > 0;
@@ -202,6 +213,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const handleCUMButton = useCallback(() => openModal('button'), [openModal]);
     const handleCUMAlert = useCallback(() => openModal('alert'), [openModal]);
     const handleCUMEmbed = useCallback(() => openModal('embed'), [openModal]);
+    const handleCUMTable = useCallback(() => openModal('table'), [openModal]);
 
     // Modal insertion handler
     const handleModalInsert = useCallback((markdown: string) => {
@@ -362,12 +374,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         enableAI, ai
     ]);
 
-    // Render markdown using our NEW renderer
-    console.log('=== DEBUGGING MARKDOWN ===');
-    debugMarkdown(); // Shows what rules are registered
-    const tokens = parseMarkdown(content);
-    console.log('Tokens created:', tokens);
-    const renderedHtml = renderMarkdown(content);
+    // Render markdown (engine has built-in LRU caching, so no manual memoization needed)
+    // Still using useMemo for React optimization to prevent re-renders
+    const renderedHtml = useMemo(() => {
+        return renderMarkdown(debouncedContent);
+    }, [debouncedContent]);
 
     // Create clean toolbar structure
     const toolbarGroups: ToolbarGroup[] = [
@@ -475,6 +486,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     label: 'Embed',
                     onClick: handleCUMEmbed,
                 },
+                {
+                    icon: <Zap size={16}/>,
+                    label: 'Table',
+                    onClick: handleCUMTable,
+                },
             ],
         });
     }
@@ -580,6 +596,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     <CUMEmbedModal
                         isOpen={modals.embedModal}
                         onClose={() => closeModal('embed')}
+                        onInsert={handleModalInsert}
+                    />
+                    <CUMTableModal
+                        isOpen={modals.tableModal}
+                        onClose={() => closeModal('table')}
                         onInsert={handleModalInsert}
                     />
                 </>

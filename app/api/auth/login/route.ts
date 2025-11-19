@@ -79,6 +79,33 @@ export async function POST(request: NextRequest) {
         // Validate input
         const {email, password, bypassBreachWarning} = loginSchema.parse(body)
 
+        // Block login for system accounts
+        if (email.endsWith('@changerawr.sys')) {
+            try {
+                await createAuditLog(
+                    'LOGIN_FAILURE',
+                    null,
+                    null,
+                    {
+                        reason: 'SYSTEM_ACCOUNT_LOGIN_BLOCKED',
+                        email,
+                        ipAddress,
+                        userAgent,
+                        timestamp: new Date().toISOString()
+                    }
+                );
+            } catch (auditLogError) {
+                console.error('Failed to create system account block audit log:', auditLogError);
+            }
+
+            await bcrypt.compare(password, '$2a$12$dummy.hash.to.prevent.timing.attacks.with.enough.length.to.be.realistic')
+
+            return NextResponse.json(
+                {error: 'Invalid credentials'},
+                {status: 401}
+            )
+        }
+
         // Create login attempt log
         try {
             const attemptLog = await createAuditLog(

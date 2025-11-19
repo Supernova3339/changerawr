@@ -1,0 +1,161 @@
+/**
+ * Changerawr Widget CSS Reset
+ *
+ * Scoped reset to prevent conflicts with customer site styles.
+ * All rules are scoped to .changerawr-* classes.
+ */
+
+/* ============================================
+   BOX SIZING
+   ============================================ */
+.changerawr-widget,
+.changerawr-widget *,
+.changerawr-widget *::before,
+.changerawr-widget *::after {
+    box-sizing: border-box;
+}
+
+/* ============================================
+   RESET MARGINS & PADDING
+   ============================================ */
+.changerawr-widget h1,
+.changerawr-widget h2,
+.changerawr-widget h3,
+.changerawr-widget h4,
+.changerawr-widget h5,
+.changerawr-widget h6,
+.changerawr-widget p,
+.changerawr-widget ul,
+.changerawr-widget ol,
+.changerawr-widget li,
+.changerawr-widget blockquote,
+.changerawr-widget figure,
+.changerawr-widget pre {
+    margin: 0;
+    padding: 0;
+}
+
+/* ============================================
+   LIST STYLES
+   ============================================ */
+.changerawr-widget ul,
+.changerawr-widget ol {
+    list-style: none;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+.changerawr-widget a {
+    text-decoration: inherit;
+    color: inherit;
+}
+
+.changerawr-widget a:focus {
+    outline: 2px solid var(--changerawr-border-focus);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.changerawr-widget button {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.changerawr-widget button:focus {
+    outline: 2px solid var(--changerawr-border-focus);
+    outline-offset: 2px;
+}
+
+.changerawr-widget button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* ============================================
+   IMAGES
+   ============================================ */
+.changerawr-widget img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ============================================
+   INPUTS
+   ============================================ */
+.changerawr-widget input,
+.changerawr-widget textarea,
+.changerawr-widget select {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* ============================================
+   SCROLLBAR STYLING (WEBKIT)
+   ============================================ */
+.changerawr-widget ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.changerawr-widget ::-webkit-scrollbar-track {
+    background: var(--changerawr-bg-secondary);
+}
+
+.changerawr-widget ::-webkit-scrollbar-thumb {
+    background: var(--changerawr-border-color);
+    border-radius: var(--changerawr-border-radius);
+}
+
+.changerawr-widget ::-webkit-scrollbar-thumb:hover {
+    background: var(--changerawr-text-tertiary);
+}
+
+/* ============================================
+   FIREFOX SCROLLBAR
+   ============================================ */
+.changerawr-widget * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--changerawr-border-color) var(--changerawr-bg-secondary);
+}
+
+/* ============================================
+   PREVENT CUSTOMER SITE STYLE BLEED
+   ============================================ */
+.changerawr-widget {
+    all: initial;
+    /* Restore necessary properties */
+    display: block;
+    position: relative;
+}
+
+/* ============================================
+   ACCESSIBILITY - FOCUS VISIBLE
+   ============================================ */
+.changerawr-widget :focus:not(:focus-visible) {
+    outline: none;
+}
+
+.changerawr-widget :focus-visible {
+    outline: 2px solid var(--changerawr-border-focus);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .changerawr-widget {
+        display: none !important;
+    }
+}

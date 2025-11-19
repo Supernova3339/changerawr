@@ -38,7 +38,7 @@ type ChangelogPageProps = {
 
 async function getInitialData(projectId: string): Promise<ChangelogResponse | null> {
     const res = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/changelog/${projectId}/entries`,
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/changelog/${projectId}/entries/all`,
         { next: { revalidate: 300 } }
     );
 

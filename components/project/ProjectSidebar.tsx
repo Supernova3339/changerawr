@@ -1,9 +1,11 @@
+// /components/project/ProjectSidebar.tsx
+
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import {usePathname} from 'next/navigation'
+import {useQuery} from '@tanstack/react-query'
 import {
     ChevronLeft,
     LayoutDashboard,
@@ -23,18 +25,20 @@ import {
     Rss,
     type LucideIcon,
     ChartNoAxesCombined,
-    Globe
+    Globe,
+    Key
 } from 'lucide-react';
 import {SiGithub} from '@icons-pack/react-simple-icons';
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
-import { formatDistanceToNow } from 'date-fns'
+import {Button} from '@/components/ui/button'
+import {ScrollArea} from '@/components/ui/scroll-area'
+import {Separator} from '@/components/ui/separator'
+import {Skeleton} from '@/components/ui/skeleton'
+import {Badge} from '@/components/ui/badge'
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip'
+import {Alert, AlertDescription} from '@/components/ui/alert'
+import {cn} from '@/lib/utils'
+import {formatDistanceToNow} from 'date-fns'
+import {useBookmarks} from '@/hooks/useBookmarks'
 
 interface NavItemProps {
     href: string
@@ -44,12 +48,6 @@ interface NavItemProps {
     external?: boolean
     badge?: string
     disabled?: boolean
-}
-
-interface BookmarkedItem {
-    id: string
-    title: string
-    projectId: string
 }
 
 interface ChangelogEntry {
@@ -72,7 +70,7 @@ interface Project {
     isPublic: boolean
 }
 
-function NavItem({ href, icon: Icon, label, active, external, badge, disabled }: NavItemProps) {
+function NavItem({href, icon: Icon, label, active, external, badge, disabled}: NavItemProps) {
     if (disabled) {
         return (
             <TooltipProvider>
@@ -83,7 +81,7 @@ function NavItem({ href, icon: Icon, label, active, external, badge, disabled }:
                             "text-muted-foreground/50 bg-muted/20 cursor-not-allowed"
                         )}>
                             <div className="flex items-center">
-                                <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                                <Icon className="mr-2 h-4 w-4 flex-shrink-0"/>
                                 <span className="truncate">{label}</span>
                             </div>
                             {badge && (
@@ -110,10 +108,10 @@ function NavItem({ href, icon: Icon, label, active, external, badge, disabled }:
                     ? "bg-accent text-accent-foreground font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
             )}
-            {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            {...(external ? {target: "_blank", rel: "noopener noreferrer"} : {})}
         >
             <div className="flex items-center min-w-0">
-                <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                <Icon className="mr-2 h-4 w-4 flex-shrink-0"/>
                 <span className="truncate">{label}</span>
             </div>
             {badge && (
@@ -121,7 +119,7 @@ function NavItem({ href, icon: Icon, label, active, external, badge, disabled }:
                     {badge}
                 </Badge>
             )}
-            {external && <ExternalLink className="ml-2 h-3 w-3 opacity-70 flex-shrink-0" />}
+            {external && <ExternalLink className="ml-2 h-3 w-3 opacity-70 flex-shrink-0"/>}
         </Link>
     )
 }
@@ -133,8 +131,6 @@ interface RecentChangelogProps {
     date: string
     version?: string | null
     isPublished?: boolean
-    onBookmark: () => void
-    isBookmarked: boolean
 }
 
 function RecentChangelog({
@@ -143,10 +139,19 @@ function RecentChangelog({
                              title,
                              date,
                              version,
-                             isPublished,
-                             onBookmark,
-                             isBookmarked
+                             isPublished
                          }: RecentChangelogProps) {
+    const {toggleBookmark, isBookmarked} = useBookmarks({
+        projectId,
+        entryId: id
+    });
+
+    const handleBookmarkClick = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await toggleBookmark(id, title, projectId);
+    };
+
     return (
         <div className="group relative">
             <Link
@@ -154,8 +159,9 @@ function RecentChangelog({
                 className="block p-2 pr-10 hover:bg-accent/50 rounded-md transition-colors"
             >
                 <div className="flex items-start gap-2">
-                    <div className="h-8 w-8 bg-primary/10 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <FileText className="h-4 w-4 text-primary" />
+                    <div
+                        className="h-8 w-8 bg-primary/10 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <FileText className="h-4 w-4 text-primary"/>
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-1.5">
@@ -173,7 +179,7 @@ function RecentChangelog({
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                             <div className="flex items-center text-xs text-muted-foreground">
-                                <Clock className="h-3 w-3 mr-1" />
+                                <Clock className="h-3 w-3 mr-1"/>
                                 <span>{formatDistanceToNow(new Date(date))} ago</span>
                             </div>
                             {version && (
@@ -193,11 +199,7 @@ function RecentChangelog({
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onBookmark();
-                                }}
+                                onClick={handleBookmarkClick}
                             >
                                 <Star
                                     className={cn(
@@ -223,17 +225,24 @@ interface BookmarkedChangelogProps {
     id: string
     projectId: string
     title: string
-    onRemove: () => void
 }
 
-function BookmarkedChangelog({ id, projectId, title, onRemove }: BookmarkedChangelogProps) {
+function BookmarkedChangelog({id, projectId, title}: BookmarkedChangelogProps) {
+    const {removeBookmark} = useBookmarks({projectId});
+
+    const handleRemoveBookmark = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await removeBookmark(id, projectId);
+    };
+
     return (
         <div className="group relative">
             <Link
                 href={`/dashboard/projects/${projectId}/changelog/${id}`}
                 className="flex items-center gap-2 p-2 pr-10 hover:bg-accent/50 rounded-md text-sm transition-colors"
             >
-                <Bookmark className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                <Bookmark className="h-4 w-4 text-amber-500 flex-shrink-0"/>
                 <span className="line-clamp-1 break-words">
                     {title}
                 </span>
@@ -246,13 +255,9 @@ function BookmarkedChangelog({ id, projectId, title, onRemove }: BookmarkedChang
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onRemove();
-                                }}
+                                onClick={handleRemoveBookmark}
                             >
-                                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                                <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500"/>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -265,27 +270,12 @@ function BookmarkedChangelog({ id, projectId, title, onRemove }: BookmarkedChang
     )
 }
 
-export function ProjectSidebar({ projectId }: { projectId: string }) {
+export function ProjectSidebar({projectId}: { projectId: string }) {
     const pathname = usePathname()
-    const [bookmarkedChangelogs, setBookmarkedChangelogs] = useState<BookmarkedItem[]>([]);
-
-    // Load bookmarks from localStorage when component mounts
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem(`bookmarked-${projectId}`);
-            if (saved) {
-                try {
-                    setBookmarkedChangelogs(JSON.parse(saved));
-                } catch (e) {
-                    console.error("Failed to parse bookmarks:", e);
-                    setBookmarkedChangelogs([]);
-                }
-            }
-        }
-    }, [projectId]);
+    const {bookmarks, isLoading: isLoadingBookmarks} = useBookmarks({projectId});
 
     // Fetch project details
-    const { data: project, isLoading: isLoadingProject } = useQuery<Project>({
+    const {data: project, isLoading: isLoadingProject} = useQuery<Project>({
         queryKey: ['project', projectId],
         queryFn: async () => {
             const response = await fetch(`/api/projects/${projectId}`)
@@ -295,7 +285,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
     })
 
     // Fetch recent changelogs
-    const { data: changelogData, isLoading: isLoadingChangelogs } = useQuery<ChangelogData>({
+    const {data: changelogData, isLoading: isLoadingChangelogs} = useQuery<ChangelogData>({
         queryKey: ['recent-changelogs', projectId],
         queryFn: async () => {
             const response = await fetch(`/api/projects/${projectId}/changelog?limit=4`)
@@ -303,32 +293,6 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
             return response.json()
         }
     })
-
-    // Function to toggle a bookmark
-    const toggleBookmark = (id: string, title: string, projectId: string) => {
-        const isBookmarked = bookmarkedChangelogs.some(b => b.id === id);
-        let updated: BookmarkedItem[];
-
-        if (isBookmarked) {
-            // Remove bookmark
-            updated = bookmarkedChangelogs.filter(b => b.id !== id);
-        } else {
-            // Add bookmark
-            updated = [...bookmarkedChangelogs, {
-                id,
-                title,
-                projectId
-            }];
-        }
-
-        setBookmarkedChangelogs(updated);
-        localStorage.setItem(`bookmarked-${projectId}`, JSON.stringify(updated));
-    }
-
-    // Check if a changelog is bookmarked
-    const isChangelogBookmarked = (changelogId: string) => {
-        return bookmarkedChangelogs.some(b => b.id === changelogId);
-    }
 
     // Determine if project is public
     const isPublic = project?.isPublic || false;
@@ -343,13 +307,14 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
 
     if (isLoadingProject) {
         return (
-            <div className="hidden md:flex fixed inset-y-0 left-0 z-40 flex-col border-r bg-background w-64 transition-all duration-300">
+            <div
+                className="hidden md:flex fixed inset-y-0 left-0 z-40 flex-col border-r bg-background w-64 transition-all duration-300">
                 <div className="p-4 border-b">
-                    <Skeleton className="h-8 w-36" />
+                    <Skeleton className="h-8 w-36"/>
                 </div>
                 <div className="p-4 space-y-3">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                        <Skeleton key={i} className="h-8 w-full" />
+                    {Array.from({length: 4}).map((_, i) => (
+                        <Skeleton key={i} className="h-8 w-full"/>
                     ))}
                 </div>
             </div>
@@ -357,7 +322,8 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
     }
 
     return (
-        <div className="hidden md:flex fixed inset-y-0 left-0 z-40 flex-col border-r bg-background w-64 transition-all duration-300">
+        <div
+            className="hidden md:flex fixed inset-y-0 left-0 z-40 flex-col border-r bg-background w-64 transition-all duration-300">
             {/* Header */}
             <div className="h-16 flex items-center justify-between border-b p-4">
                 <div className="flex items-center gap-2 min-w-0">
@@ -368,7 +334,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                         className="h-8 w-8 flex-shrink-0"
                     >
                         <Link href="/dashboard/projects">
-                            <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeft className="h-4 w-4"/>
                             <span className="sr-only">Back to projects</span>
                         </Link>
                     </Button>
@@ -393,7 +359,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                                 asChild
                             >
                                 <Link href={`/dashboard/projects/${projectId}/changelog/new`}>
-                                    <Plus className="h-3.5 w-3.5" />
+                                    <Plus className="h-3.5 w-3.5"/>
                                     <span className="text-xs">New</span>
                                 </Link>
                             </Button>
@@ -436,7 +402,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                         />
                     </nav>
 
-                    <Separator className="my-3" />
+                    <Separator className="my-3"/>
 
                     <div className="px-3 mb-2">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -478,9 +444,15 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                             active={pathname.includes(`/dashboard/projects/${projectId}/domains`)}
                             disabled={!isPublic}
                         />
+                        <NavItem
+                            href={`/dashboard/projects/${projectId}/api-keys`}
+                            icon={Key}
+                            label="API Keys"
+                            active={pathname.includes(`/dashboard/projects/${projectId}/api-keys`)}
+                        />
                     </nav>
 
-                    <Separator className="my-3" />
+                    <Separator className="my-3"/>
 
                     <nav className="space-y-1">
                         <NavItem
@@ -504,21 +476,20 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                 )}
 
                 {/* Bookmarks Section */}
-                {bookmarkedChangelogs.length > 0 && (
+                {!isLoadingBookmarks && bookmarks.length > 0 && (
                     <div className="py-2 px-3 mt-2">
                         <div className="flex items-center mb-2">
-                            <Star className="h-4 w-4 text-amber-500 mr-1.5" />
+                            <Star className="h-4 w-4 text-amber-500 mr-1.5"/>
                             <h3 className="text-xs font-semibold">Bookmarked</h3>
                         </div>
 
                         <div className="space-y-1">
-                            {bookmarkedChangelogs.map((changelog) => (
+                            {bookmarks.map((bookmark) => (
                                 <BookmarkedChangelog
-                                    key={changelog.id}
-                                    id={changelog.id}
+                                    key={bookmark.id}
+                                    id={bookmark.id}
                                     projectId={projectId}
-                                    title={changelog.title}
-                                    onRemove={() => toggleBookmark(changelog.id, changelog.title, projectId)}
+                                    title={bookmark.title}
                                 />
                             ))}
                         </div>
@@ -529,7 +500,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                 <div className="py-2 px-3 mt-2">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                            <History className="h-4 w-4 text-primary mr-1.5" />
+                            <History className="h-4 w-4 text-primary mr-1.5"/>
                             <h3 className="text-xs font-semibold">Recent Updates</h3>
                         </div>
                         {changelogCount > 0 && (
@@ -548,10 +519,10 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
 
                     <div className="space-y-1">
                         {isLoadingChangelogs ? (
-                            Array.from({ length: 3 }).map((_, i) => (
+                            Array.from({length: 3}).map((_, i) => (
                                 <div key={i} className="p-2">
-                                    <Skeleton className="h-5 w-full mb-2" />
-                                    <Skeleton className="h-3 w-24" />
+                                    <Skeleton className="h-5 w-full mb-2"/>
+                                    <Skeleton className="h-3 w-24"/>
                                 </div>
                             ))
                         ) : changelogData?.entries && changelogData.entries.length > 0 ? (
@@ -564,13 +535,11 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                                     date={changelog.updatedAt || changelog.createdAt}
                                     version={changelog.version}
                                     isPublished={!!changelog.publishedAt}
-                                    onBookmark={() => toggleBookmark(changelog.id, changelog.title, projectId)}
-                                    isBookmarked={isChangelogBookmarked(changelog.id)}
                                 />
                             ))
                         ) : (
                             <div className="py-6 text-center">
-                                <PenTool className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                                <PenTool className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2"/>
                                 <p className="text-sm text-muted-foreground">No changelogs yet</p>
                                 <Button
                                     variant="link"
@@ -590,7 +559,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                 {changelogCount > 0 && (
                     <div className="py-2 px-3 mt-2">
                         <div className="flex items-center mb-2">
-                            <UserSquare2 className="h-4 w-4 text-primary mr-1.5" />
+                            <UserSquare2 className="h-4 w-4 text-primary mr-1.5"/>
                             <h3 className="text-xs font-semibold">Project Stats</h3>
                         </div>
 
@@ -599,7 +568,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                                 <span className="text-muted-foreground">Published entries</span>
                                 <span className="font-medium">
                                     {isLoadingChangelogs ? (
-                                        <Skeleton className="h-3 w-8 inline-block" />
+                                        <Skeleton className="h-3 w-8 inline-block"/>
                                     ) : publishedCount}
                                 </span>
                             </div>
@@ -607,7 +576,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                                 <span className="text-muted-foreground">Draft entries</span>
                                 <span className="font-medium">
                                     {isLoadingChangelogs ? (
-                                        <Skeleton className="h-3 w-8 inline-block" />
+                                        <Skeleton className="h-3 w-8 inline-block"/>
                                     ) : draftCount}
                                 </span>
                             </div>
@@ -615,7 +584,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                                 <span className="text-muted-foreground">Last updated</span>
                                 <span className="font-medium">
                                     {isLoadingChangelogs || !changelogData?.entries?.length ? (
-                                        <Skeleton className="h-3 w-16 inline-block" />
+                                        <Skeleton className="h-3 w-16 inline-block"/>
                                     ) : (
                                         formatDistanceToNow(new Date(changelogData.entries[0].updatedAt || changelogData.entries[0].createdAt)) + ' ago'
                                     )}
@@ -630,7 +599,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
             <div className="p-3 border-t flex items-center justify-between">
                 <Button variant="outline" className="justify-start text-xs h-8" asChild>
                     <Link href="/dashboard/projects">
-                        <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                        <ChevronLeft className="h-3.5 w-3.5 mr-1"/>
                         All Projects
                     </Link>
                 </Button>
@@ -641,7 +610,7 @@ export function ProjectSidebar({ projectId }: { projectId: string }) {
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                                     <Link href={rssUrl} target="_blank" rel="noopener noreferrer">
-                                        <Rss className="h-4 w-4 text-orange-500" />
+                                        <Rss className="h-4 w-4 text-orange-500"/>
                                     </Link>
                                 </Button>
                             </TooltipTrigger>

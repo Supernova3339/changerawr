@@ -175,7 +175,7 @@ export default function ChangelogEntries({projectId}: ChangelogEntriesProps) {
             }
 
             const res = await fetch(
-                `/api/changelog/${projectId}/entries?${searchParams.toString()}`
+                `/api/changelog/${projectId}/entries/all?${searchParams.toString()}`
             )
             if (!res.ok) {
                 const error = await res.json()

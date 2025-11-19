@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Loader2, CheckCircle2 } from 'lucide-react';
-import { WelcomeStep } from '@/components/setup/steps/welcome-step';
-import { AdminStep } from '@/components/setup/steps/admin-step';
-import { SettingsStep } from '@/components/setup/steps/settings-step';
-import { OAuthStep } from '@/components/setup/steps/oauth-step';
-import { TeamStep } from '@/components/setup/steps/team-step'; // New import
-import { CompletionStep } from '@/components/setup/steps/completion-step';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import React, {useState, useEffect} from 'react';
+import {Loader2, CheckCircle2} from 'lucide-react';
+import {WelcomeStep} from '@/components/setup/steps/welcome-step';
+import {AdminStep} from '@/components/setup/steps/admin-step';
+import {SettingsStep} from '@/components/setup/steps/settings-step';
+import {OAuthStep} from '@/components/setup/steps/oauth-step';
+import {TeamStep} from '@/components/setup/steps/team-step'; // New import
+import {CompletionStep} from '@/components/setup/steps/completion-step';
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {Button} from '@/components/ui/button';
 import Link from 'next/link';
-import { SetupProvider, useSetup } from '@/components/setup/setup-context';
-import { motion, AnimatePresence } from 'framer-motion';
+import {SetupProvider, useSetup} from '@/components/setup/setup-context';
+import {motion, AnimatePresence} from 'framer-motion';
 
 function StepIndicator() {
-    const { currentStep } = useSetup();
+    const {currentStep} = useSetup();
     const steps = ['welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
     const currentIndex = steps.indexOf(currentStep);
 
@@ -38,35 +38,35 @@ function StepIndicator() {
 }
 
 function SetupContent() {
-    const { currentStep, goToNextStep, goToPreviousStep, skipCurrentStep } = useSetup();
+    const {currentStep, goToNextStep, goToPreviousStep, skipCurrentStep} = useSetup();
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
-            <StepIndicator />
+            <StepIndicator/>
 
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentStep}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{opacity: 0, y: 10}}
+                    animate={{opacity: 1, y: 0}}
+                    exit={{opacity: 0, y: -10}}
+                    transition={{duration: 0.3}}
                     className="w-full"
                 >
                     {currentStep === 'welcome' && (
-                        <WelcomeStep onNext={goToNextStep} />
+                        <WelcomeStep onNext={goToNextStep}/>
                     )}
 
                     {currentStep === 'admin' && (
-                        <AdminStep onNext={goToNextStep} onBack={goToPreviousStep} />
+                        <AdminStep onNext={goToNextStep} onBack={goToPreviousStep}/>
                     )}
 
                     {currentStep === 'settings' && (
-                        <SettingsStep onNext={goToNextStep} onBack={goToPreviousStep} />
+                        <SettingsStep onNext={goToNextStep} onBack={goToPreviousStep}/>
                     )}
 
                     {currentStep === 'oauth' && (
-                        <OAuthStep onNext={goToNextStep} onBack={goToPreviousStep} />
+                        <OAuthStep onNext={goToNextStep} onBack={goToPreviousStep}/>
                     )}
 
                     {currentStep === 'team' && (
@@ -78,7 +78,7 @@ function SetupContent() {
                     )}
 
                     {currentStep === 'complete' && (
-                        <CompletionStep />
+                        <CompletionStep/>
                     )}
                 </motion.div>
             </AnimatePresence>
@@ -117,7 +117,7 @@ export default function SetupPage() {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
                 <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary"/>
                     <p>Checking setup status...</p>
                 </div>
             </div>
@@ -129,7 +129,7 @@ export default function SetupPage() {
             <div className="min-h-screen flex items-center justify-center p-4">
                 <div className="w-full max-w-md space-y-4">
                     <div className="text-center space-y-2">
-                        <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
+                        <CheckCircle2 className="h-12 w-12 text-primary mx-auto"/>
                         <h1 className="text-2xl font-bold">Setup Already Completed</h1>
                         <p className="text-muted-foreground">The system has already been configured.</p>
                     </div>
@@ -150,7 +150,7 @@ export default function SetupPage() {
 
     return (
         <SetupProvider>
-            <SetupContent />
+            <SetupContent/>
         </SetupProvider>
     );
 }

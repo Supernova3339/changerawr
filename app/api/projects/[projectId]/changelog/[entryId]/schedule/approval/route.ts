@@ -290,7 +290,7 @@ export async function POST(
                             type: 'Schedule Request',
                             projectName: project.name,
                             entryTitle: entry.title,
-                            adminName: (user as User).name || user.email,
+                            adminName: user.name || user.email,
                         },
                         dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/projects/${projectId}`,
                     });
@@ -343,7 +343,7 @@ export async function POST(
                             type: 'Schedule Request',
                             projectName: project.name,
                             entryTitle: entry.title,
-                            adminName: (user as User).name || user.email,
+                            adminName: user.name || user.email,
                         },
                         dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/projects/${projectId}`,
                     });

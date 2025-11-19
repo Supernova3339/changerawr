@@ -10,3 +10,5 @@
 - [x] automatic updates if installed on Easypanel
 - [x] not all audit logs load from the database
 - [x] automatically configure OAuth2 for Easypanel installations
+- [x] If updating an OAuth2 ( SSO ) provider, you won't be able to log in with it anymore
+- [x] for whatever reason, the email you invite has to be lowercase. cool, check for that!

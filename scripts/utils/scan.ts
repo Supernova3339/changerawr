@@ -430,7 +430,7 @@ const exampleConfig: ScreenshotConfig = {
     // waitForSelector: '[data-testid="page-loaded"]', // disabled until eventually implemented
     delay: 1000, // Optional: additional delay in ms
     routeParams: {
-        projectId: 'cm7zegrfx000ipp6g5ogohwuj', // Uses project ID from current testing database
+        projectId: 'cmhy3qagr000dvt7kd5hoicrk', // Uses project ID from current testing database
     }
 };
 

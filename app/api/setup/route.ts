@@ -11,7 +11,15 @@ import {SetupStep} from '@/components/setup/setup-context';
 export async function GET() {
     try {
         // Check database state to determine progress
-        const userCount = await db.user.count();
+        const userCount = await db.user.count({
+            where: {
+                email: {
+                    not: {
+                        endsWith: '@changerawr.sys'
+                    }
+                }
+            }
+        });
         const systemConfig = await db.systemConfig.findFirst();
         const oauthProviders = await db.oAuthProvider.count();
         const invitationCount = await db.invitationLink.count();

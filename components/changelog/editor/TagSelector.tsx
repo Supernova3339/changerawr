@@ -11,7 +11,7 @@ import {
     CommandList,
     CommandSeparator
 } from "@/components/ui/command";
-import {Tags, Check, Plus, Sparkles, Loader2, X, AlertCircle, CheckCircle, Palette} from 'lucide-react';
+import {Tags, Check, Plus, Sparkles, Loader2, X, AlertCircle, CheckCircle, Palette, Lightbulb} from 'lucide-react';
 import {Separator} from '@/components/ui/separator';
 import {Badge} from "@/components/ui/badge";
 import {cn} from '@/lib/utils';
@@ -31,7 +31,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {ColorPicker} from '@/components/changelog/editor/TagColorPicker';
+import {ColorPicker, ColoredTag} from '@/components/changelog/editor/TagColorPicker';
+import {TAG_COLOR_OPTIONS} from '@/lib/types/changelog';
 
 interface Tag {
     id: string;
@@ -52,6 +53,20 @@ interface TagSelectorProps {
 const MAX_CHARS_PER_SECTION = 150; // Characters per extracted section
 const SECTIONS_TO_EXTRACT = 3;     // Number of sections to extract
 const SECTIONS_TO_ANALYZE = 3;     // Number of sections to actually send to AI
+
+// Tag suggestions shown when no tags exist - hardcoded suggestions
+interface TagSuggestion {
+    name: string;
+    colorValue: string; // Reference to TAG_COLOR_OPTIONS value
+}
+
+const TAG_SUGGESTIONS: TagSuggestion[] = [
+    {name: 'Feature', colorValue: 'green'},
+    {name: 'Bug Fixes', colorValue: 'red'},
+    {name: 'Improvement', colorValue: 'blue'},
+    {name: 'Other', colorValue: 'gray'},
+];
+
 
 export default function TagSelector({
                                         selectedTags,
@@ -186,7 +201,7 @@ export default function TagSelector({
     };
 
     // Handle creating a new tag with color support
-    const handleCreateTag = useCallback(async (name: string) => {
+    const handleCreateTag = useCallback(async (name: string, color?: string | null) => {
         if (!name.trim()) return;
 
         setIsCreating(true);
@@ -198,7 +213,7 @@ export default function TagSelector({
                 },
                 body: JSON.stringify({
                     name: name.trim(),
-                    color: newTagColor
+                    color: color !== undefined ? color : newTagColor
                 })
             });
 
@@ -505,7 +520,40 @@ ${formattedSections}
 
                             <CommandEmpty>
                                 <div className="py-3 px-4 text-center text-sm">
-                                    <p className="text-muted-foreground mb-2">No tags found</p>
+                                    {!search && availableTags.length === 0 && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-center gap-2 pb-2">
+                                                <Lightbulb className="h-4 w-4 text-yellow-500"/>
+                                                <p className="text-sm font-medium text-foreground">Quick start tags</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 justify-center">
+                                                {TAG_SUGGESTIONS.map((suggestion) => {
+                                                    const colorOption = TAG_COLOR_OPTIONS.find(opt => opt.value === suggestion.colorValue);
+                                                    return (
+                                                        <button
+                                                            key={suggestion.name}
+                                                            onClick={() => {
+                                                                handleCreateTag(suggestion.name, colorOption?.color || null);
+                                                            }}
+                                                            className="group transition-all hover:scale-105"
+                                                        >
+                                                            <ColoredTag
+                                                                name={suggestion.name}
+                                                                color={colorOption?.color}
+                                                                size="sm"
+                                                                className="cursor-pointer opacity-70 group-hover:opacity-100"
+                                                            />
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {search && (
+                                        <>
+                                            <p className="text-muted-foreground mb-2">No tags found</p>
+                                        </>
+                                    )}
                                     {search && (
                                         <div className="mt-2 space-y-3">
                                             <p className="text-xs text-muted-foreground mb-2">Create a new tag:</p>

@@ -307,16 +307,29 @@ export async function handleOAuthCallback(providerName: string, code: string) {
             });
         }
 
-        // Create OAuth connection
+        // Create or update OAuth connection using upsert
         const expiresAt = expires_in ? new Date(Date.now() + expires_in * 1000) : null;
-        await db.oAuthConnection.create({
-            data: {
+        await db.oAuthConnection.upsert({
+            where: {
+                providerId_userId: {
+                    providerId,
+                    userId: user.id
+                }
+            },
+            create: {
                 providerId,
                 userId: user.id,
                 providerUserId: userDetails.id,
                 accessToken: access_token,
                 refreshToken: refresh_token || null,
                 expiresAt
+            },
+            update: {
+                providerUserId: userDetails.id,
+                accessToken: access_token,
+                refreshToken: refresh_token || null,
+                expiresAt,
+                updatedAt: new Date()
             }
         });
 

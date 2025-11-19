@@ -4,6 +4,7 @@ import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {useAuth} from '@/context/auth'
 import {
+    BookmarkIcon,
     ChartNoAxesCombined,
     ClipboardCheck,
     Clock,
@@ -136,7 +137,13 @@ const NAV_SECTIONS: NavSection[] = [
                 label: "Settings",
                 icon: Settings,
                 requiredRole: ['ADMIN', 'STAFF']
-            }
+            },
+            {
+                href: "/dashboard/bookmarks",
+                label: "Bookmarks",
+                icon: BookmarkIcon,
+                requiredRole: ['ADMIN', 'STAFF']
+            },
         ]
     }
 ]

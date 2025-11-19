@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { z } from 'zod'
-import { getGravatarUrl } from '@/lib/utils/gravatar'
+import {NextResponse} from 'next/server'
+import {db} from '@/lib/db'
+import {z} from 'zod'
+import {getGravatarUrl} from '@/lib/utils/gravatar'
 
 const previewSchema = z.object({
     email: z.string().email()
@@ -11,27 +11,24 @@ const previewSchema = z.object({
  * @method POST
  * @description Creates a preview of a user's information
  * @path /api/preview
- * @request {json}
- * @response 200 {
- *   "type": "object",
- *   "properties": {
- *     "id": { "type": "string" },
- *     "name": { "type": "string" },
- *     "email": { "type": "string" },
- *     "avatarUrl": { "type": "string" }
- *   }
- * }
- * @error 400 Invalid input - Email must be a valid email address
- * @error 404 User not found
- * @error 500 An unexpected error occurred while creating the preview
  */
 export async function POST(request: Request) {
     try {
         const body = await request.json()
-        const { email } = previewSchema.parse(body)
+        const {email} = previewSchema.parse(body)
+        const normalizedEmail = email.toLowerCase()
+
+        // Never acknowledge system accounts
+        if (normalizedEmail.endsWith('@changerawr.sys')) {
+            // Intentionally return as if no user exists
+            return NextResponse.json(
+                {error: 'User not found'},
+                {status: 404}
+            )
+        }
 
         const user = await db.user.findUnique({
-            where: { email: email.toLowerCase() },
+            where: {email: normalizedEmail},
             select: {
                 name: true,
                 email: true,
@@ -40,8 +37,8 @@ export async function POST(request: Request) {
 
         if (!user) {
             return NextResponse.json(
-                { error: 'User not found' },
-                { status: 404 }
+                {error: 'User not found'},
+                {status: 404}
             )
         }
 
@@ -56,14 +53,14 @@ export async function POST(request: Request) {
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: error.errors },
-                { status: 400 }
+                {error: error.errors},
+                {status: 400}
             )
         }
 
         return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
+            {error: 'Internal server error'},
+            {status: 500}
         )
     }
 }

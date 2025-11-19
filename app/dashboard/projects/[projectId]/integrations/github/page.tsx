@@ -432,6 +432,7 @@ export default function GitHubIntegrationPage() {
                             ) : (
                                 <GitHubIntegrationSettings
                                     projectId={projectId}
+                                    projectName={project.name}
                                 />
                             )}
                         </CardContent>

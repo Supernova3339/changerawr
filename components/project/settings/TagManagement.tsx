@@ -305,10 +305,6 @@ export default function TagManagement({projectId}: TagManagementProps) {
                             <TagIcon className="h-12 w-12 mx-auto mb-4 opacity-50"/>
                             <h3 className="text-lg font-medium mb-2">No tags yet</h3>
                             <p className="mb-4">Create your first tag to help organize your changelog entries.</p>
-                            {/*<Button onClick={() => setIsCreateDialogOpen(true)}>*/}
-                            {/*    <Plus className="h-4 w-4 mr-2"/>*/}
-                            {/*    Create Tag*/}
-                            {/*</Button>*/}
                         </div>
                     ) : (
                         <motion.div

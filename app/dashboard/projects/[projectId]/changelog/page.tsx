@@ -13,6 +13,7 @@ import {Card, CardContent} from "@/components/ui/card"
 import {Badge} from "@/components/ui/badge"
 import {compareVersions} from 'compare-versions'
 import {ChangelogEntry, ChangelogTag as ChTag} from '@/lib/types/changelog'
+import {CatchUpView} from "@/components/project/catch-up/CatchUpView";
 
 interface ChangelogPageProps {
     params: Promise<{ projectId: string }>
@@ -78,6 +79,12 @@ export default function ChangelogPage({params}: ChangelogPageProps) {
         hidden: {y: 20, opacity: 0},
         show: {y: 0, opacity: 1}
     }
+
+    const fadeIn = {
+        initial: {opacity: 0, y: 20},
+        animate: {opacity: 1, y: 0},
+        transition: {duration: 0.5}
+    };
 
     return (
         <div className="h-full min-h-screen bg-background">
@@ -193,6 +200,15 @@ export default function ChangelogPage({params}: ChangelogPageProps) {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Catch-Up Section - NEW */}
+                <motion.div
+                    initial="initial"
+                    animate="animate"
+                    variants={fadeIn}
+                >
+                    <CatchUpView projectId={projectId} />
+                </motion.div>
 
                 {/* Entries */}
                 <AnimatePresence mode="wait">

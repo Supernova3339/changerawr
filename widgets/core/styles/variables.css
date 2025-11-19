@@ -1,0 +1,266 @@
+/**
+ * Changerawr Widget CSS Custom Properties
+ *
+ * These variables can be overridden via:
+ * 1. data-* attributes on the script tag
+ * 2. External stylesheet via data-custom-css
+ * 3. Database-stored theme CSS
+ */
+
+:root {
+    /* ============================================
+       COLORS - Primary & Brand
+       ============================================ */
+    --changerawr-primary-color: #0066ff;
+    --changerawr-primary-hover: #0052cc;
+    --changerawr-primary-active: #003d99;
+    --changerawr-primary-light: #e8f2ff;
+    --changerawr-primary-dark: #1a365d;
+
+    /* ============================================
+       COLORS - Background
+       ============================================ */
+    --changerawr-bg-primary: #ffffff;
+    --changerawr-bg-secondary: #f8f9fa;
+    --changerawr-bg-tertiary: #f5f5f5;
+    --changerawr-bg-hover: #f5f5f5;
+    --changerawr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+    /* ============================================
+       COLORS - Text
+       ============================================ */
+    --changerawr-text-primary: #1a1a1a;
+    --changerawr-text-secondary: #666666;
+    --changerawr-text-tertiary: #999999;
+    --changerawr-text-inverse: #ffffff;
+
+    /* ============================================
+       COLORS - Borders
+       ============================================ */
+    --changerawr-border-color: #eaeaea;
+    --changerawr-border-color-light: #f5f5f5;
+    --changerawr-border-color-dark: #333333;
+    --changerawr-border-focus: var(--changerawr-primary-color);
+
+    /* ============================================
+       COLORS - Semantic
+       ============================================ */
+    --changerawr-success-color: #10b981;
+    --changerawr-warning-color: #f59e0b;
+    --changerawr-danger-color: #ef4444;
+    --changerawr-info-color: #3b82f6;
+
+    /* ============================================
+       SHADOWS
+       ============================================ */
+    --changerawr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --changerawr-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --changerawr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --changerawr-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+    /* ============================================
+       TYPOGRAPHY - Font Families
+       ============================================ */
+    --changerawr-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --changerawr-font-family-mono: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    /* ============================================
+       TYPOGRAPHY - Font Sizes
+       ============================================ */
+    --changerawr-font-size-xs: 11px;
+    --changerawr-font-size-sm: 12px;
+    --changerawr-font-size-base: 14px;
+    --changerawr-font-size-md: 14px;
+    --changerawr-font-size-lg: 16px;
+    --changerawr-font-size-xl: 18px;
+    --changerawr-font-size-2xl: 24px;
+    --changerawr-font-size-3xl: 30px;
+
+    /* ============================================
+       TYPOGRAPHY - Font Weights
+       ============================================ */
+    --changerawr-font-weight-normal: 400;
+    --changerawr-font-weight-medium: 500;
+    --changerawr-font-weight-semibold: 600;
+    --changerawr-font-weight-bold: 700;
+
+    /* ============================================
+       TYPOGRAPHY - Line Heights
+       ============================================ */
+    --changerawr-line-height: 1.5;
+    --changerawr-line-height-tight: 1.25;
+    --changerawr-line-height-relaxed: 1.75;
+
+    /* ============================================
+       SPACING SCALE
+       ============================================ */
+    --changerawr-spacing-xs: 4px;
+    --changerawr-spacing-sm: 8px;
+    --changerawr-spacing-md: 12px;
+    --changerawr-spacing-lg: 16px;
+    --changerawr-spacing-xl: 24px;
+    --changerawr-spacing-2xl: 32px;
+    --changerawr-spacing-3xl: 48px;
+
+    /* ============================================
+       LAYOUT - Dimensions
+       ============================================ */
+    --changerawr-widget-width: 300px;
+    --changerawr-widget-max-width: 400px;
+    --changerawr-widget-min-width: 280px;
+    --changerawr-widget-max-height: 400px;
+    --changerawr-widget-min-height: 200px;
+
+    /* ============================================
+       LAYOUT - Border Radius
+       ============================================ */
+    --changerawr-border-radius-sm: 4px;
+    --changerawr-border-radius: 8px;
+    --changerawr-border-radius-md: 8px;
+    --changerawr-border-radius-lg: 12px;
+    --changerawr-border-radius-xl: 16px;
+    --changerawr-border-radius-full: 9999px;
+
+    /* ============================================
+       LAYOUT - Z-Index
+       ============================================ */
+    --changerawr-z-index: 999999;
+    --changerawr-z-index-backdrop: 999998;
+    --changerawr-z-index-modal: 1000000;
+
+    /* ============================================
+       ANIMATIONS - Timing
+       ============================================ */
+    --changerawr-transition-speed-fast: 150ms;
+    --changerawr-transition-speed: 200ms;
+    --changerawr-transition-speed-slow: 300ms;
+    --changerawr-transition-speed-slower: 400ms;
+
+    /* ============================================
+       ANIMATIONS - Easing Functions
+       ============================================ */
+    --changerawr-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+    --changerawr-transition-easing-in: cubic-bezier(0.4, 0, 1, 1);
+    --changerawr-transition-easing-out: cubic-bezier(0, 0, 0.2, 1);
+    --changerawr-transition-easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --changerawr-transition-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* ============================================
+       COMPONENT SPECIFIC
+       ============================================ */
+    --changerawr-header-padding: 12px 16px;
+    --changerawr-entry-padding: 8px 16px;
+    --changerawr-footer-padding: 8px 16px;
+    --changerawr-tag-padding: 2px 8px;
+
+    /* ============================================
+       POSITIONING
+       ============================================ */
+    --changerawr-popup-offset: 20px;
+    --changerawr-popup-transform-distance: 20px;
+}
+
+/* ============================================
+   DARK THEME
+   ============================================ */
+.changerawr-theme-dark {
+    /* Colors - Background */
+    --changerawr-bg-primary: #1f2937;
+    --changerawr-bg-secondary: #111827;
+    --changerawr-bg-tertiary: #374151;
+    --changerawr-bg-hover: #374151;
+
+    /* Colors - Text */
+    --changerawr-text-primary: #f3f4f6;
+    --changerawr-text-secondary: #d1d5db;
+    --changerawr-text-tertiary: #9ca3af;
+
+    /* Colors - Primary (lighter for dark backgrounds) */
+    --changerawr-primary-color: #60a5fa;
+    --changerawr-primary-hover: #93c5fd;
+    --changerawr-primary-active: #3b82f6;
+    --changerawr-primary-light: #1e3a8a;
+    --changerawr-primary-dark: #60a5fa;
+
+    /* Colors - Semantic */
+    --changerawr-success-color: #34d399;
+    --changerawr-warning-color: #fbbf24;
+    --changerawr-danger-color: #f87171;
+    --changerawr-info-color: #60a5fa;
+
+    /* Colors - Borders */
+    --changerawr-border-color: #4b5563;
+    --changerawr-border-color-light: #374151;
+    --changerawr-border-color-dark: #1f2937;
+
+    /* Shadows (stronger for dark theme) */
+    --changerawr-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --changerawr-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.6);
+    --changerawr-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.7);
+    --changerawr-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.8);
+
+    /* Spinner colors */
+    --changerawr-spinner-track: #4b5563;
+    --changerawr-spinner-color: var(--changerawr-primary-color);
+}
+
+/* ============================================
+   LIGHT THEME (explicit class for override)
+   ============================================ */
+.changerawr-theme-light {
+    /* Use root defaults - included for explicitness */
+    --changerawr-bg-primary: #ffffff;
+    --changerawr-text-primary: #1a1a1a;
+    --changerawr-primary-color: #0066ff;
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --changerawr-border-color: #000000;
+        --changerawr-text-secondary: #000000;
+    }
+
+    .changerawr-theme-dark {
+        --changerawr-border-color: #ffffff;
+        --changerawr-text-secondary: #ffffff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --changerawr-transition-speed-fast: 0ms;
+        --changerawr-transition-speed: 0ms;
+        --changerawr-transition-speed-slow: 0ms;
+        --changerawr-transition-speed-slower: 0ms;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES FOR POSITIONING
+   ============================================ */
+
+.changerawr-position-top-left {
+    top: var(--changerawr-popup-offset);
+    left: var(--changerawr-popup-offset);
+}
+
+.changerawr-position-top-right {
+    top: var(--changerawr-popup-offset);
+    right: var(--changerawr-popup-offset);
+}
+
+.changerawr-position-bottom-left {
+    bottom: var(--changerawr-popup-offset);
+    left: var(--changerawr-popup-offset);
+}
+
+.changerawr-position-bottom-right {
+    bottom: var(--changerawr-popup-offset);
+    right: var(--changerawr-popup-offset);
+}

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { validateAuthAndGetUser } from '@/lib/utils/changelog';
+import {NextResponse} from 'next/server';
+import {db} from '@/lib/db';
+import {validateAuthAndGetUser} from '@/lib/utils/changelog';
 
 /**
  * @method GET
@@ -55,8 +55,8 @@ export async function GET() {
 
         if (!user) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
+                {error: 'Unauthorized'},
+                {status: 401}
             );
         }
 
@@ -97,12 +97,12 @@ export async function GET() {
             }
         });
 
-        return NextResponse.json({ requests });
+        return NextResponse.json({requests});
     } catch (error) {
         console.error('Error fetching requests:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch requests' },
-            { status: 500 }
+            {error: 'Failed to fetch requests'},
+            {status: 500}
         );
     }
 }

@@ -1,4 +1,4 @@
-// components/changelog/DestructiveActionRequest.tsx
+// components/changelog/DestructiveActionRequest.tsx ( this was the original name, kept for internal docs )
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {

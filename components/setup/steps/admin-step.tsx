@@ -18,7 +18,8 @@ import {
     User,
     Mail,
     Lock,
-    AlertCircle
+    AlertCircle,
+    Key
 } from 'lucide-react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {cn} from '@/lib/utils';
@@ -169,6 +170,7 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
                                 errors.name ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'
                             )}
                             autoFocus
+                            startIcon={<User/>}
                         />
                     </div>
                     <AnimatePresence>
@@ -207,6 +209,7 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
                                 "h-12 pl-10 transition-all duration-200",
                                 errors.email ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'
                             )}
+                            startIcon={<Mail/>}
                         />
                     </div>
                     <AnimatePresence>
@@ -261,6 +264,7 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
                                 "h-12 pl-10 pr-10 transition-all duration-200",
                                 errors.password ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'
                             )}
+                            startIcon={<Key/>}
                         />
                         <Button
                             type="button"
@@ -343,6 +347,7 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
                                 "h-12 pl-10 transition-all duration-200",
                                 errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'
                             )}
+                            startIcon={<Key/>}
                         />
                     </div>
                     <AnimatePresence>

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { createPasswordResetAndSendEmail } from '@/lib/services/auth/password-reset';
+import {NextResponse} from 'next/server';
+import {z} from 'zod';
+import {createPasswordResetAndSendEmail} from '@/lib/services/auth/password-reset';
 
 // Validation schema for forgot password request
 const forgotPasswordSchema = z.object({
@@ -54,9 +54,17 @@ const forgotPasswordSchema = z.object({
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { email } = forgotPasswordSchema.parse(body);
+        const {email} = forgotPasswordSchema.parse(body);
 
-        await createPasswordResetAndSendEmail({ email });
+        // Skip system emails
+        if (email.toLowerCase().endsWith('@changerawr.sys')) {
+            return NextResponse.json({
+                success: true,
+                message: "If an account with this email exists, a password reset link has been sent."
+            });
+        }
+
+        await createPasswordResetAndSendEmail({email});
 
         // Always return success even if user doesn't exist (for security)
         return NextResponse.json({
@@ -68,14 +76,14 @@ export async function POST(request: Request) {
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Invalid email format' },
-                { status: 400 }
+                {error: 'Invalid email format'},
+                {status: 400}
             );
         }
 
         return NextResponse.json(
-            { error: 'Failed to initiate password reset' },
-            { status: 500 }
+            {error: 'Failed to initiate password reset'},
+            {status: 500}
         );
     }
 }

@@ -1,18 +1,18 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, User, Lock, RefreshCw } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import React, {useEffect, useState, use} from 'react'
+import {useForm} from 'react-hook-form'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {z} from 'zod'
+import {useRouter} from 'next/navigation'
+import {motion, AnimatePresence} from 'framer-motion'
+import {Input} from '@/components/ui/input'
+import {Button} from '@/components/ui/button'
+import {Label} from '@/components/ui/label'
+import {AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, User, Lock, RefreshCw, Mail, Key} from 'lucide-react'
+import {Alert, AlertDescription} from '@/components/ui/alert'
+import {Card, CardContent, CardFooter} from '@/components/ui/card'
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 import Link from 'next/link'
 import confetti from 'canvas-confetti'
 
@@ -52,7 +52,7 @@ const fireConfetti = () => {
             ...defaults,
             particleCount: 20,
             gravity: 1,
-            origin: { y: 0.6, x: 0.5 }
+            origin: {y: 0.6, x: 0.5}
         });
         return;
     }
@@ -61,7 +61,7 @@ const fireConfetti = () => {
     confetti({
         ...defaults,
         particleCount: isMobile ? 50 : 100,
-        origin: { y: 0.6, x: 0.5 }
+        origin: {y: 0.6, x: 0.5}
     });
 
     // Create cannon effect
@@ -71,7 +71,7 @@ const fireConfetti = () => {
             particleCount: isMobile ? 25 : 50,
             angle: 60,
             spread: 50,
-            origin: { x: 0, y: 0.6 }
+            origin: {x: 0, y: 0.6}
         });
 
         confetti({
@@ -79,7 +79,7 @@ const fireConfetti = () => {
             particleCount: isMobile ? 25 : 50,
             angle: 120,
             spread: 50,
-            origin: { x: 1, y: 0.6 }
+            origin: {x: 1, y: 0.6}
         });
     }, 250);
 
@@ -90,13 +90,13 @@ const fireConfetti = () => {
             particleCount: isMobile ? 15 : 30,
             angle: 90,
             gravity: 1.2,
-            origin: { x: 0.5, y: 0.7 }
+            origin: {x: 0.5, y: 0.7}
         });
     }, 400);
 };
 
-export default function RegisterPage({ params }: { params: Promise<{ token: string }> }) {
-    const { token } = use(params)
+export default function RegisterPage({params}: { params: Promise<{ token: string }> }) {
+    const {token} = use(params)
     const [error, setError] = useState('')
     const [invitation, setInvitation] = useState<InvitationInfo | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -110,7 +110,7 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
         register,
         handleSubmit,
         watch,
-        formState: { errors, isSubmitting, isValid }
+        formState: {errors, isSubmitting, isValid}
     } = useForm<RegisterForm>({
         resolver: zodResolver(registerSchema),
         mode: "onChange",
@@ -184,7 +184,7 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
         try {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     token,
                     name: data.name,
@@ -229,7 +229,7 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
         return (
             <div className="flex flex-col items-center justify-center h-full">
                 <div className="w-14 h-14 bg-muted/30 rounded-full flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary"/>
                 </div>
                 <p className="text-muted-foreground mt-4">Validating invitation...</p>
             </div>
@@ -243,7 +243,7 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                 {isSuccess ? (
                     <motion.div
                         key="success"
-                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        initial={{opacity: 0, scale: 0.8, y: 20}}
                         animate={{
                             opacity: 1,
                             scale: 1,
@@ -254,12 +254,12 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                 damping: 30
                             }
                         }}
-                        exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                        exit={{opacity: 0, scale: 0.8, y: -20}}
                         className="w-full max-w-sm mx-auto text-center"
                     >
                         <motion.div
                             className="mb-8"
-                            initial={{ scale: 0 }}
+                            initial={{scale: 0}}
                             animate={{
                                 scale: 1,
                                 transition: {
@@ -269,7 +269,8 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                 }
                             }}
                         >
-                            <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-full flex items-center justify-center mx-auto shadow-md">
+                            <div
+                                className="w-24 h-24 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-full flex items-center justify-center mx-auto shadow-md">
                                 <motion.div
                                     animate={{
                                         rotate: [0, 10, -10, 10, 0],
@@ -280,17 +281,18 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                         delay: 0.3
                                     }}
                                 >
-                                    <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" strokeWidth={1.5} />
+                                    <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400"
+                                                  strokeWidth={1.5}/>
                                 </motion.div>
                             </div>
                         </motion.div>
 
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{opacity: 0, y: 20}}
                             animate={{
                                 opacity: 1,
                                 y: 0,
-                                transition: { delay: 0.3 }
+                                transition: {delay: 0.3}
                             }}
                         >
                             <h2 className="text-2xl font-bold mb-2">Account Created Successfully</h2>
@@ -304,10 +306,10 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
 
                         <motion.div
                             className="space-y-3"
-                            initial={{ opacity: 0 }}
+                            initial={{opacity: 0}}
                             animate={{
                                 opacity: 1,
-                                transition: { delay: 0.4 }
+                                transition: {delay: 0.4}
                             }}
                         >
                             <Button
@@ -329,16 +331,17 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                 ) : !invitation ? (
                     <motion.div
                         key="error"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
+                        initial={{opacity: 0, y: 10}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0, y: -10}}
                         className="w-full"
                     >
                         <Card className="w-full shadow-lg border-t-4 border-t-destructive">
                             <CardContent className="pt-6">
                                 <div className="flex flex-col items-center text-center space-y-4">
-                                    <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
-                                        <AlertCircle className="h-10 w-10 text-destructive" />
+                                    <div
+                                        className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
+                                        <AlertCircle className="h-10 w-10 text-destructive"/>
                                     </div>
                                     <div className="space-y-2">
                                         <h2 className="text-2xl font-bold">Invalid Invitation</h2>
@@ -370,10 +373,10 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                 ) : (
                     <motion.div
                         key="form"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{opacity: 0, y: 10}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0, y: -10}}
+                        transition={{duration: 0.2}}
                         className="w-full"
                     >
                         <Card className="w-full shadow-lg border-t-4 border-t-primary overflow-hidden">
@@ -381,9 +384,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                 <div className="space-y-4">
                                     <motion.div
                                         className="text-center space-y-2"
-                                        initial={{ y: -10, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
+                                        initial={{y: -10, opacity: 0}}
+                                        animate={{y: 0, opacity: 1}}
+                                        transition={{duration: 0.3}}
                                     >
                                         <h1 className="text-2xl font-bold">Complete your registration</h1>
                                         <p className="text-sm text-muted-foreground">
@@ -394,9 +397,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                     <AnimatePresence>
                                         {error && (
                                             <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                exit={{ opacity: 0, height: 0 }}
+                                                initial={{opacity: 0, height: 0}}
+                                                animate={{opacity: 1, height: 'auto'}}
+                                                exit={{opacity: 0, height: 0}}
                                             >
                                                 <Alert variant="destructive">
                                                     <AlertDescription>{error}</AlertDescription>
@@ -408,13 +411,14 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                                         <motion.div
                                             className="space-y-2"
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ duration: 0.3, delay: 0.1 }}
+                                            initial={{x: -10, opacity: 0}}
+                                            animate={{x: 0, opacity: 1}}
+                                            transition={{duration: 0.3, delay: 0.1}}
                                         >
                                             <Label htmlFor="name">Full name</Label>
                                             <div className="relative group">
-                                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
+                                                <User
+                                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200"/>
                                                 <Input
                                                     id="name"
                                                     {...register('name')}
@@ -422,15 +426,16 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                                     placeholder="Your name"
                                                     className={`h-11 pl-10 ${errors.name ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'} transition-all duration-200`}
                                                     autoFocus
+                                                    startIcon={<User/>}
                                                 />
                                             </div>
                                             <AnimatePresence>
                                                 {errors.name && (
                                                     <motion.p
                                                         className="text-sm text-destructive flex items-center gap-1 mt-1"
-                                                        initial={{ opacity: 0, height: 0, y: -10 }}
-                                                        animate={{ opacity: 1, height: 'auto', y: 0 }}
-                                                        exit={{ opacity: 0, height: 0, y: -10 }}
+                                                        initial={{opacity: 0, height: 0, y: -10}}
+                                                        animate={{opacity: 1, height: 'auto', y: 0}}
+                                                        exit={{opacity: 0, height: 0, y: -10}}
                                                     >
                                                         <span className="inline-block">⚠️</span>
                                                         {errors.name.message}
@@ -441,9 +446,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
 
                                         <motion.div
                                             className="space-y-2"
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ duration: 0.3, delay: 0.2 }}
+                                            initial={{x: -10, opacity: 0}}
+                                            animate={{x: 0, opacity: 1}}
+                                            transition={{duration: 0.3, delay: 0.2}}
                                         >
                                             <div className="flex justify-between items-center">
                                                 <Label htmlFor="password">Password</Label>
@@ -451,24 +456,28 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                                                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                                                                <AlertCircle className="h-4 w-4 text-muted-foreground"/>
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p className="max-w-xs">Password should be at least 8 characters. Strong passwords include uppercase letters, numbers, and symbols.</p>
+                                                            <p className="max-w-xs">Password should be at least 8
+                                                                characters. Strong passwords include uppercase letters,
+                                                                numbers, and symbols.</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
                                             </div>
 
                                             <div className="relative group">
-                                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
+                                                <Lock
+                                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200"/>
                                                 <Input
                                                     id="password"
                                                     {...register('password')}
                                                     type={showPassword ? 'text' : 'password'}
                                                     placeholder="••••••••"
                                                     className={`h-11 pl-10 pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'} transition-all duration-200`}
+                                                    startIcon={<Key/>}
                                                 />
                                                 <Button
                                                     type="button"
@@ -478,9 +487,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                                     onClick={togglePasswordVisibility}
                                                 >
                                                     {showPassword ? (
-                                                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                        <EyeOff className="h-4 w-4 text-muted-foreground"/>
                                                     ) : (
-                                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                                        <Eye className="h-4 w-4 text-muted-foreground"/>
                                                     )}
                                                 </Button>
                                             </div>
@@ -499,10 +508,11 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                                             {getStrengthLabel()}
                                                         </span>
                                                     </div>
-                                                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden flex">
+                                                    <div
+                                                        className="h-1.5 w-full bg-muted rounded-full overflow-hidden flex">
                                                         <div
                                                             className={`h-full ${getStrengthColor()} transition-all duration-300 ease-out`}
-                                                            style={{ width: `${(passwordStrength + 1) * 25}%` }}
+                                                            style={{width: `${(passwordStrength + 1) * 25}%`}}
                                                         ></div>
                                                     </div>
                                                 </div>
@@ -512,9 +522,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                                 {errors.password && (
                                                     <motion.p
                                                         className="text-sm text-destructive flex items-center gap-1 mt-1"
-                                                        initial={{ opacity: 0, height: 0, y: -10 }}
-                                                        animate={{ opacity: 1, height: 'auto', y: 0 }}
-                                                        exit={{ opacity: 0, height: 0, y: -10 }}
+                                                        initial={{opacity: 0, height: 0, y: -10}}
+                                                        animate={{opacity: 1, height: 'auto', y: 0}}
+                                                        exit={{opacity: 0, height: 0, y: -10}}
                                                     >
                                                         <span className="inline-block">⚠️</span>
                                                         {errors.password.message}
@@ -525,28 +535,30 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
 
                                         <motion.div
                                             className="space-y-2"
-                                            initial={{ x: -10, opacity: 0 }}
-                                            animate={{ x: 0, opacity: 1 }}
-                                            transition={{ duration: 0.3, delay: 0.3 }}
+                                            initial={{x: -10, opacity: 0}}
+                                            animate={{x: 0, opacity: 1}}
+                                            transition={{duration: 0.3, delay: 0.3}}
                                         >
                                             <Label htmlFor="confirmPassword">Confirm password</Label>
                                             <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Lock
+                                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
                                                 <Input
                                                     id="confirmPassword"
                                                     {...register('confirmPassword')}
                                                     type={showPassword ? 'text' : 'password'}
                                                     placeholder="••••••••"
                                                     className={`h-11 pl-10 ${errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive/20' : 'focus-visible:ring-primary/20'} transition-all duration-200`}
+                                                    startIcon={<Key/>}
                                                 />
                                             </div>
                                             <AnimatePresence>
                                                 {errors.confirmPassword && (
                                                     <motion.p
                                                         className="text-sm text-destructive flex items-center gap-1 mt-1"
-                                                        initial={{ opacity: 0, height: 0, y: -10 }}
-                                                        animate={{ opacity: 1, height: 'auto', y: 0 }}
-                                                        exit={{ opacity: 0, height: 0, y: -10 }}
+                                                        initial={{opacity: 0, height: 0, y: -10}}
+                                                        animate={{opacity: 1, height: 'auto', y: 0}}
+                                                        exit={{opacity: 0, height: 0, y: -10}}
                                                     >
                                                         <span className="inline-block">⚠️</span>
                                                         {errors.confirmPassword.message}
@@ -556,9 +568,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                         </motion.div>
 
                                         <motion.div
-                                            initial={{ y: 10, opacity: 0 }}
-                                            animate={{ y: 0, opacity: 1 }}
-                                            transition={{ duration: 0.3, delay: 0.4 }}
+                                            initial={{y: 10, opacity: 0}}
+                                            animate={{y: 0, opacity: 1}}
+                                            transition={{duration: 0.3, delay: 0.4}}
                                         >
                                             <Button
                                                 type="submit"
@@ -571,22 +583,23 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                             >
                                                 {isSubmitting ? (
                                                     <span className="flex items-center gap-2">
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                        <Loader2 className="h-4 w-4 animate-spin"/>
                                                         Creating account...
                                                     </span>
                                                 ) : (
                                                     <>
-                                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                                        <RefreshCw className="mr-2 h-4 w-4"/>
                                                         Create account
                                                     </>
                                                 )}
 
                                                 {isValid && !isSubmitting && (
-                                                    <span className="absolute right-0 top-0 h-full w-12 -skew-x-12 overflow-hidden flex justify-center items-center">
+                                                    <span
+                                                        className="absolute right-0 top-0 h-full w-12 -skew-x-12 overflow-hidden flex justify-center items-center">
                                                         <motion.div
                                                             className="bg-white/20 h-8 w-8 rounded-full"
-                                                            initial={{ x: -100 }}
-                                                            animate={{ x: 150 }}
+                                                            initial={{x: -100}}
+                                                            animate={{x: 150}}
                                                             transition={{
                                                                 repeat: Infinity,
                                                                 duration: 2,
@@ -604,9 +617,9 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
 
                             <CardFooter className="flex justify-center pb-6">
                                 <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.5 }}
+                                    initial={{opacity: 0}}
+                                    animate={{opacity: 1}}
+                                    transition={{delay: 0.5}}
                                 >
                                     <Button
                                         variant="ghost"
@@ -615,7 +628,7 @@ export default function RegisterPage({ params }: { params: Promise<{ token: stri
                                         className="text-sm text-muted-foreground hover:text-foreground"
                                     >
                                         <Link href="/login">
-                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            <ArrowLeft className="mr-2 h-4 w-4"/>
                                             Back to Login
                                         </Link>
                                     </Button>

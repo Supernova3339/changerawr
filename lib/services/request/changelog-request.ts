@@ -67,6 +67,7 @@ interface DatabaseChangelogRequest {
         email: string;
         name: string | null;
     } | null;
+    customPublishedAt?: string | null;
 }
 
 interface RequestContext {
@@ -200,10 +201,15 @@ class AllowPublishProcessor implements RequestProcessor {
         }
 
         // Update the entry's publish status
+        // Use custom publishedAt date if provided, otherwise use current date
+        const publishedAt = request.customPublishedAt
+            ? new Date(request.customPublishedAt)
+            : new Date();
+
         await tx.changelogEntry.update({
             where: {id: request.ChangelogEntry.id},
             data: {
-                publishedAt: new Date()
+                publishedAt: publishedAt
             }
         });
     }
@@ -384,7 +390,14 @@ class ChangelogRequestService {
             throw new Error('Request not found');
         }
 
-        return request as DatabaseChangelogRequest;
+        // Extract custom publishedAt from metadata if present
+        const metadata = (request as unknown as {metadata?: {customPublishedAt?: string} | null}).metadata;
+        const customPublishedAt = metadata?.customPublishedAt || null;
+
+        return {
+            ...request,
+            customPublishedAt
+        } as DatabaseChangelogRequest;
     }
 
     private async updateRequestStatus(

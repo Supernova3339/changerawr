@@ -21,6 +21,8 @@ RUN npx prisma generate
 
 # Next.js collects completely anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV DOCKER_BUILD 1
+ENV CI_BUILD_MODE 1
 
 # Build the app
 RUN npm run build

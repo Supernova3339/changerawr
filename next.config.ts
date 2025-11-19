@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -22,6 +23,9 @@ const nextConfig: NextConfig = {
         };
 
         return config;
+    },
+    turbopack: {
+        root: path.join(__dirname, '..'),
     },
     // output: 'standalone', uses next-start, leave commented-out
 };

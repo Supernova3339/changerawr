@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { validateAuthAndGetUser } from '@/lib/utils/changelog';
-import { generateCLIAuthCode } from '@/lib/auth/cli-auth';
+import {NextRequest, NextResponse} from 'next/server';
+import {z} from 'zod';
+import {validateAuthAndGetUser} from '@/lib/utils/changelog';
+import {generateCLIAuthCode} from '@/lib/auth/cli-auth';
 
 const generateCodeSchema = z.object({
     callbackUrl: z.string().url('Valid callback URL is required'),
@@ -51,16 +51,22 @@ export async function POST(request: NextRequest) {
 
         // Parse and validate request body
         const body = await request.json();
-        const { callbackUrl } = generateCodeSchema.parse(body);
+        const {callbackUrl} = generateCodeSchema.parse(body);
 
         // Validate that the callback URL is for localhost (security measure)
         const url = new URL(callbackUrl);
-        if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
-            return NextResponse.json(
-                { error: 'Callback URL must be localhost for security' },
-                { status: 400 }
-            );
+
+        // Skip hostname validation for wwc:// protocol
+        if (url.protocol !== 'wwc:') {
+            // For other protocols, enforce localhost restriction
+            if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+                return NextResponse.json(
+                    {error: 'Callback URL must be localhost for security'},
+                    {status: 400}
+                );
+            }
         }
+        // wwc:// protocol is allowed through without hostname validation
 
         // Generate the authorization code
         const authCode = await generateCLIAuthCode(user.id, callbackUrl);
@@ -76,21 +82,21 @@ export async function POST(request: NextRequest) {
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Invalid request format', details: error.errors },
-                { status: 400 }
+                {error: 'Invalid request format', details: error.errors},
+                {status: 400}
             );
         }
 
         if (error instanceof Error && error.message.includes('token')) {
             return NextResponse.json(
-                { error: 'Authentication required' },
-                { status: 401 }
+                {error: 'Authentication required'},
+                {status: 401}
             );
         }
 
         return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
+            {error: 'Internal server error'},
+            {status: 500}
         );
     }
 }

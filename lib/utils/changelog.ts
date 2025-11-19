@@ -1,8 +1,8 @@
 import {z} from 'zod'
 import {db} from '@/lib/db'
 import {RequestStatus} from '@prisma/client'
-import {verifyAccessToken} from '@/lib/auth/tokens'
 import {cookies, headers} from "next/headers";
+import type {AuthRequest} from '@/lib/auth/api-key';
 
 // Zod Schemas
 export const requestStatusSchema = z.object({
@@ -20,78 +20,30 @@ export type ChangelogEntryInput = z.infer<typeof changelogEntrySchema>
 
 // Auth Helper
 export async function validateAuthAndGetUser() {
-    // Check for Bearer token (API key or JWT) first
+    // Create a NextRequest-like object from headers/cookies
     const headersList = await headers();
-    const authHeader = headersList.get('authorization');
-
-    if (authHeader?.startsWith('Bearer ')) {
-        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-
-        // First, try to validate as JWT token (for CLI)
-        try {
-            const userId = await verifyAccessToken(token);
-            if (userId) {
-                const user = await db.user.findUnique({
-                    where: {id: userId}
-                });
-
-                if (user) {
-                    return user;
-                }
-            }
-        } catch {
-            // If JWT validation fails, continue to API key check
-        }
-
-        // Then try to validate as API key (for API access)
-        const validApiKey = await db.apiKey.findFirst({
-            where: {
-                key: token,
-                OR: [
-                    {expiresAt: null},
-                    {expiresAt: {gt: new Date()}}
-                ],
-                isRevoked: false
-            }
-        });
-
-        if (validApiKey) {
-            // Update last used timestamp
-            await db.apiKey.update({
-                where: {id: validApiKey.id},
-                data: {lastUsed: new Date()}
-            });
-
-            // API keys always get admin access since they can only be created by admins
-            return {
-                id: validApiKey.userId,
-                email: 'api.key@changerawr.sys',
-                role: 'ADMIN',
-                createdAt: validApiKey.createdAt,
-                updatedAt: new Date()
-            };
-        }
-
-        // If neither JWT nor API key validation worked
-        throw new Error('Invalid token');
-    }
-
-    // Fall back to cookie authentication
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken');
 
-    if (!accessToken?.value) {
-        throw new Error('No access token found');
+    // Build a minimal request object for authenticateRequest
+    const requestLike: AuthRequest = {
+        headers: {
+            get: (name: string) => headersList.get(name)
+        },
+        cookies: {
+            get: (name: string) => cookieStore.get(name)
+        }
+    };
+
+    const { authenticateRequest } = await import('@/lib/auth/api-key');
+    const ctx = await authenticateRequest(requestLike);
+
+    if (!ctx) {
+        throw new Error('Authentication required');
     }
 
-    const userId = await verifyAccessToken(accessToken.value);
-
-    if (!userId) {
-        throw new Error('Invalid token');
-    }
-
+    // Get the actual user from the database
     const user = await db.user.findUnique({
-        where: {id: userId}
+        where: { id: ctx.userId }
     });
 
     if (!user) {
@@ -120,4 +72,40 @@ export function sendSuccess(data: unknown, status: number = 200) {
             headers: {'Content-Type': 'application/json'}
         }
     )
+}
+
+// Excerpt Helper
+const EXCERPT_LENGTH = 300;
+
+export function generateExcerpt(content: string): string {
+    if (!content) return '';
+
+    // Basic markdown cleanup - remove common formatting
+    const cleaned = content
+        .replace(/^#{1,6}\s+/gm, '') // Remove headers
+        .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+        .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
+        .replace(/`([^`]+)`/g, '$1') // Remove inline code
+        .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+        .replace(/\n+/g, ' ') // Replace newlines with spaces
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim();
+
+    // Truncate to excerpt length
+    if (cleaned.length <= EXCERPT_LENGTH) {
+        return cleaned;
+    }
+
+    // Try to truncate at a word boundary
+    const truncated = cleaned.substring(0, EXCERPT_LENGTH);
+    const lastSpace = truncated.lastIndexOf(' ');
+
+    if (lastSpace > EXCERPT_LENGTH * 0.8) {
+        // If we found a space in the last 20%, use it
+        return truncated.substring(0, lastSpace) + '...';
+    }
+
+    // Otherwise just truncate and add ellipsis
+    return truncated + '...';
 }

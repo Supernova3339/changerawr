@@ -47,8 +47,10 @@ import {
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import SDKShowcase from '@/components/admin/api/sdk-showcase';
+import SDKShowcaseCompact from '@/components/admin/api/sdk-showcase-compact';
 import { Badge } from '@/components/ui/badge';
+import { PermissionsModal } from '@/components/admin/api/PermissionsModal';
+import { PERMISSION_GROUPS } from '@/lib/api/permissions';
 
 interface ApiKey {
     id: string;
@@ -58,6 +60,12 @@ interface ApiKey {
     createdAt: string;
     expiresAt: string | null;
     isRevoked: boolean;
+    projectId: string | null;
+    project?: {
+        id: string;
+        name: string;
+    };
+    permissions: string[];
 }
 
 interface RenameDialogProps {
@@ -184,7 +192,9 @@ function NewKeyAlert({ keyData, onClose, onCopy }: { keyData: { key: string; id:
 export default function ApiKeysPage() {
     const queryClient = useQueryClient();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
     const [newKeyName, setNewKeyName] = useState('');
+    const [newKeyPermissions, setNewKeyPermissions] = useState<string[]>(PERMISSION_GROUPS.FULL_ACCESS);
     const [newKeyData, setNewKeyData] = useState<{ key: string; id: string } | null>(null);
     const [renameKey, setRenameKey] = useState<ApiKey | null>(null);
 
@@ -200,11 +210,11 @@ export default function ApiKeysPage() {
     });
 
     const createApiKey = useMutation({
-        mutationFn: async (name: string) => {
+        mutationFn: async ({ name, permissions }: { name: string; permissions: string[] }) => {
             const response = await fetch('/api/admin/api-keys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name }),
+                body: JSON.stringify({ name, permissions }),
             });
             if (!response.ok) throw new Error('Failed to create API key');
             return response.json();
@@ -316,8 +326,9 @@ export default function ApiKeysPage() {
         e.preventDefault();
         if (!newKeyName.trim()) return;
 
-        await createApiKey.mutate(newKeyName);
+        await createApiKey.mutate({ name: newKeyName, permissions: newKeyPermissions });
         setNewKeyName('');
+        setNewKeyPermissions(PERMISSION_GROUPS.FULL_ACCESS);
         setIsCreateDialogOpen(false);
     };
 
@@ -391,6 +402,18 @@ export default function ApiKeysPage() {
                                             placeholder="e.g., Production API Key"
                                         />
                                     </div>
+                                    <div className="grid gap-2">
+                                        <Label>Permissions</Label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsPermissionsModalOpen(true)}
+                                            className="justify-start"
+                                        >
+                                            <Shield className="h-4 w-4 mr-2" />
+                                            {newKeyPermissions.length} permission{newKeyPermissions.length !== 1 ? 's' : ''} selected
+                                        </Button>
+                                    </div>
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit" disabled={!newKeyName.trim()}>
@@ -431,10 +454,13 @@ export default function ApiKeysPage() {
                                         Name
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
+                                        Permissions
+                                    </th>
+                                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
                                         Created
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
-                                        Last Used
+                                        Connection
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider py-3 px-6">
                                         Status
@@ -454,13 +480,26 @@ export default function ApiKeysPage() {
                                             <td className="py-4 px-6 text-sm font-medium">
                                                 {key.name}
                                             </td>
+                                            <td className="py-4 px-6 text-sm">
+                                                <div className="flex items-center gap-1">
+                                                    <Badge variant="secondary" className="text-xs">
+                                                        {key.permissions.length} permission{key.permissions.length !== 1 ? 's' : ''}
+                                                    </Badge>
+                                                </div>
+                                            </td>
                                             <td className="py-4 px-6 text-sm text-muted-foreground">
                                                 {format(new Date(key.createdAt), 'PPP')}
                                             </td>
-                                            <td className="py-4 px-6 text-sm text-muted-foreground">
-                                                {key.lastUsed
-                                                    ? format(new Date(key.lastUsed), 'PPP')
-                                                    : 'Never used'}
+                                            <td className="py-4 px-6 text-sm">
+                                                {key.lastUsed ? (
+                                                    <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                                                        Connected
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="text-muted-foreground">
+                                                        Waiting for first request
+                                                    </Badge>
+                                                )}
                                             </td>
                                             <td className="py-4 px-6 text-sm">
                                                 {key.isRevoked ? (
@@ -555,7 +594,7 @@ export default function ApiKeysPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="py-16 text-center">
+                                        <td colSpan={6} className="py-16 text-center">
                                             <div className="flex flex-col items-center justify-center">
                                                 <div className="rounded-full p-4 mb-4 bg-muted">
                                                     <Key className="h-8 w-8 text-muted-foreground/60" />
@@ -583,7 +622,7 @@ export default function ApiKeysPage() {
 
                 {/* SDKs Showcase - Right Side */}
                 <div className="lg:col-span-1">
-                    <SDKShowcase className="h-full" />
+                    <SDKShowcaseCompact />
                 </div>
             </div>
 
@@ -595,6 +634,13 @@ export default function ApiKeysPage() {
                     if (!renameKey) return;
                     await renameApiKey.mutateAsync({ id: renameKey.id, name: newName });
                 }}
+            />
+
+            <PermissionsModal
+                open={isPermissionsModalOpen}
+                onOpenChange={setIsPermissionsModalOpen}
+                selectedPermissions={newKeyPermissions}
+                onSave={setNewKeyPermissions}
             />
         </div>
     );

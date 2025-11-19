@@ -34,6 +34,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
+.api-keys-for-development.sensitive.donotcommitthisever.env.local
 
 # vercel
 .vercel
@@ -45,3 +46,22 @@ next-env.d.ts
 # mistral experiments
 /app/api/experiments/mistral-ai/chat/route.ts
 /app/experiments/mistral-ai/page.tsx
+
+# widget build files
+/public/widgets
+
+/public/widget-announcement.js
+/public/widget-bundle.js
+/public/widget-classic.js
+/public/widget-floating.js
+/public/widget-modal.js
+# mapping files ( generated )
+/public/widget-announcement.js.map
+/public/widget-bundle.js.map
+/public/widget-classic.js.map
+/public/widget-floating.js.map
+/public/widget-modal.js.map
+
+# sensitive changerawr shenanigans
+.changerawr
+.changerawr/donotdeletethisfolder/donotdeletethisfile.chrcli.json

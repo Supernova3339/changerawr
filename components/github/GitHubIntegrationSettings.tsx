@@ -11,9 +11,11 @@ import {
     Save,
     Trash2,
     Link,
-    RefreshCw
+    RefreshCw,
+    ExternalLink
 } from 'lucide-react';
 import {SiGithub} from '@icons-pack/react-simple-icons';
+import { appInfo } from '@/lib/app-info';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +86,7 @@ const DEFAULT_SETTINGS: GitHubIntegration = {
     hasAccessToken: false
 };
 
-export default function GitHubIntegrationSettings({ projectId }: { projectId: string }) {
+export default function GitHubIntegrationSettings({ projectId, projectName }: { projectId: string; projectName: string }) {
     // State management
     const [settings, setSettings] = useState<GitHubIntegration>(DEFAULT_SETTINGS);
     const [accessToken, setAccessToken] = useState('');
@@ -282,6 +284,18 @@ export default function GitHubIntegrationSettings({ projectId }: { projectId: st
         }));
     };
 
+    // Generate GitHub token creation URL with pre-filled parameters
+    const getGitHubTokenUrl = (): string => {
+        const description = `${appInfo.name} GitHub Integration: Project ${projectName}`;
+        const scopes = 'repo';
+        const encodedDescription = encodeURIComponent(description);
+        return `https://github.com/settings/tokens/new?description=${encodedDescription}&scopes=${scopes}`;
+    };
+
+    const openGitHubTokenCreation = () => {
+        window.open(getGitHubTokenUrl(), '_blank');
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-8">
@@ -388,6 +402,18 @@ export default function GitHubIntegrationSettings({ projectId }: { projectId: st
                                         </Button>
                                     </div>
                                     <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={openGitHubTokenCreation}
+                                                    title="Create a new GitHub personal access token with pre-filled parameters"
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Create Token on GitHub</TooltipContent>
+                                        </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button

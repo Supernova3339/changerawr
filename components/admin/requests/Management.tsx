@@ -167,29 +167,61 @@ export const REQUEST_TYPES: Record<RequestType, {
         icon: <Check className="h-3 w-3"/>,
         variant: 'default',
         severity: 'low',
-        getDetails: (request) => (
-            <div className="space-y-3">
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-blue-800 font-medium">
-                        <FileText className="h-4 w-4"/>
-                        Publish Request
+        getDetails: (request) => {
+            const metadata = request.metadata as {customPublishedAt?: string} | null;
+            const customPublishedAt = metadata?.customPublishedAt;
+            const publishDate = customPublishedAt ? new Date(customPublishedAt) : null;
+
+            return (
+                <div className="space-y-3">
+                    <div className={`p-3 rounded-lg border ${
+                        customPublishedAt
+                            ? 'bg-amber-50 border-amber-200'
+                            : 'bg-blue-50 border-blue-200'
+                    }`}>
+                        <div className={`flex items-center gap-2 font-medium ${
+                            customPublishedAt
+                                ? 'text-amber-800'
+                                : 'text-blue-800'
+                        }`}>
+                            <FileText className="h-4 w-4"/>
+                            {customPublishedAt ? 'Publish with Custom Date' : 'Publish Request'}
+                        </div>
+                        <p className={`text-sm mt-1 ${
+                            customPublishedAt
+                                ? 'text-amber-700'
+                                : 'text-blue-700'
+                        }`}>
+                            {customPublishedAt && publishDate
+                                ? `Staff member wants to publish this entry with a backdated publish date of ${format(publishDate, 'PPP p')}.`
+                                : 'Staff member wants to publish this changelog entry immediately.'
+                            }
+                        </p>
                     </div>
-                    <p className="text-sm text-blue-700 mt-1">
-                        Staff member wants to publish this changelog entry immediately.
-                    </p>
+                    <div className="space-y-2 text-sm">
+                        <div>
+                            <span className="text-muted-foreground">Entry Title:</span>
+                            <p className="font-medium">{request.ChangelogEntry?.title || 'Unknown Entry'}</p>
+                        </div>
+                        <div>
+                            <span className="text-muted-foreground">Project:</span>
+                            <p className="font-medium">{request.project.name}</p>
+                        </div>
+                        {customPublishedAt && publishDate && (
+                            <>
+                                <div>
+                                    <span className="text-muted-foreground">Requested Publish Date:</span>
+                                    <p className="font-medium text-amber-700">{format(publishDate, 'PPP p')}</p>
+                                </div>
+                                <div className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                                    ⚠️ This entry will show the custom date instead of the current date. Ensure this is intentional.
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
-                <div className="space-y-2 text-sm">
-                    <div>
-                        <span className="text-muted-foreground">Entry Title:</span>
-                        <p className="font-medium">{request.ChangelogEntry?.title || 'Unknown Entry'}</p>
-                    </div>
-                    <div>
-                        <span className="text-muted-foreground">Project:</span>
-                        <p className="font-medium">{request.project.name}</p>
-                    </div>
-                </div>
-            </div>
-        )
+            );
+        }
     },
     ALLOW_SCHEDULE: {
         label: 'Schedule Entry',
@@ -250,6 +282,7 @@ export interface ChangelogRequest {
     id: string;
     type: RequestType;
     targetId?: string | null;
+    metadata?: {customPublishedAt?: string} | null;
     project: {
         name: string;
     };
@@ -512,13 +545,12 @@ export function RequestManagement() {
                                                             </Button>
                                                             <Button
                                                                 size="sm"
-                                                                variant="default"
+                                                                variant="success"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     handleProcessRequest(request.id, 'APPROVED');
                                                                 }}
                                                                 disabled={processRequest.isPending}
-                                                                className="bg-emerald-600 hover:bg-emerald-700 h-8 w-8 p-0"
                                                             >
                                                                 <Check className="h-4 w-4"/>
                                                             </Button>
@@ -616,7 +648,7 @@ export function RequestManagement() {
                                             setIsDetailDialogOpen(false);
                                             handleProcessRequest(selectedRequest.id, 'APPROVED');
                                         }}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                                        variant="success"
                                     >
                                         <Check className="h-4 w-4 mr-2"/>
                                         Approve Request
@@ -661,9 +693,6 @@ export function RequestManagement() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmProcessRequest}
-                            className={processingRequest?.status === 'APPROVED'
-                                ? 'bg-emerald-600 hover:bg-emerald-700'
-                                : 'bg-destructive hover:bg-destructive/90'}
                         >
                             {processRequest.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin"/>

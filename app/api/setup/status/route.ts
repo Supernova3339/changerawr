@@ -29,8 +29,16 @@ export async function GET() {
         const responseHeaders = new Headers();
         responseHeaders.set('Cache-Control', 'max-age=5');
 
-        // Check if any user exists
-        const userCount = await db.user.count();
+        // Check if any *non-system* user exists
+        const userCount = await db.user.count({
+            where: {
+                email: {
+                    not: {
+                        endsWith: '@changerawr.sys'
+                    }
+                }
+            }
+        });
 
         // Check if system configuration exists
         const systemConfig = await db.systemConfig.findFirst();

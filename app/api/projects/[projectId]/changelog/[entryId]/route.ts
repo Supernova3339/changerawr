@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import { validateAuthAndGetUser } from '@/lib/utils/changelog'
-import { createAuditLog } from '@/lib/utils/auditLog' // Add this import
-import { db } from '@/lib/db'
+import {NextResponse} from 'next/server'
+import {validateAuthAndGetUser, generateExcerpt} from '@/lib/utils/changelog'
+import {createAuditLog} from '@/lib/utils/auditLog'
+import {db} from '@/lib/db'
 import {Role} from "@/lib/types/auth";
 
 /**
@@ -58,7 +58,7 @@ export async function GET(
 ) {
     try {
         const user = await validateAuthAndGetUser();
-        const { projectId, entryId } = await (async () => context.params)();
+        const {projectId, entryId} = await (async () => context.params)();
 
         // Log entry view attempt
         try {
@@ -77,7 +77,7 @@ export async function GET(
         }
 
         const entry = await db.changelogEntry.findUnique({
-            where: { id: entryId },
+            where: {id: entryId},
             include: {
                 tags: true,
                 changelog: {
@@ -106,8 +106,8 @@ export async function GET(
             }
 
             return NextResponse.json(
-                { error: 'Entry not found' },
-                { status: 404 }
+                {error: 'Entry not found'},
+                {status: 404}
             );
         }
 
@@ -131,8 +131,8 @@ export async function GET(
             }
 
             return NextResponse.json(
-                { error: 'Entry does not belong to this project' },
-                { status: 400 }
+                {error: 'Entry does not belong to this project'},
+                {status: 400}
             );
         }
 
@@ -157,14 +157,14 @@ export async function GET(
 
         // Remove changelog field from response
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { changelog, ...entryData } = entry;
+        const {changelog, ...entryData} = entry;
         return NextResponse.json(entryData);
     } catch (error) {
         console.error('Error fetching changelog entry:', error);
 
         // Log error
         try {
-            const { projectId, entryId } = await (async () => context.params)();
+            const {projectId, entryId} = await (async () => context.params)();
             const user = await validateAuthAndGetUser();
             await createAuditLog(
                 'CHANGELOG_ENTRY_ERROR',
@@ -184,8 +184,8 @@ export async function GET(
         }
 
         return NextResponse.json(
-            { error: 'Failed to fetch changelog entry' },
-            { status: 500 }
+            {error: 'Failed to fetch changelog entry'},
+            {status: 500}
         );
     }
 }
@@ -279,9 +279,9 @@ export async function PUT(
 ) {
     try {
         const user = await validateAuthAndGetUser();
-        const { projectId, entryId } = await (async () => context.params)();
+        const {projectId, entryId} = await (async () => context.params)();
         const requestBody = await request.json();
-        const { title, content, version, tags } = requestBody;
+        const {title, content, version, tags} = requestBody;
 
         // Log update attempt
         try {
@@ -307,7 +307,7 @@ export async function PUT(
 
         // Verify the entry exists and get existing data for comparison
         const existingEntry = await db.changelogEntry.findUnique({
-            where: { id: entryId },
+            where: {id: entryId},
             include: {
                 tags: true,
                 changelog: {
@@ -337,8 +337,8 @@ export async function PUT(
             }
 
             return NextResponse.json(
-                { error: 'Entry not found' },
-                { status: 404 }
+                {error: 'Entry not found'},
+                {status: 404}
             );
         }
 
@@ -363,8 +363,8 @@ export async function PUT(
             }
 
             return NextResponse.json(
-                { error: 'Entry does not belong to this project' },
-                { status: 400 }
+                {error: 'Entry does not belong to this project'},
+                {status: 400}
             );
         }
 
@@ -372,7 +372,7 @@ export async function PUT(
         const changes: Record<string, { from: unknown; to: unknown }> = {};
 
         if (title && title !== existingEntry.title) {
-            changes.title = { from: existingEntry.title, to: title };
+            changes.title = {from: existingEntry.title, to: title};
         }
 
         if (content && content !== existingEntry.content) {
@@ -383,7 +383,7 @@ export async function PUT(
         }
 
         if (version && version !== existingEntry.version) {
-            changes.version = { from: existingEntry.version, to: version };
+            changes.version = {from: existingEntry.version, to: version};
         }
 
         if (tags) {
@@ -406,6 +406,7 @@ export async function PUT(
             data: {
                 title,
                 content,
+                excerpt: content ? generateExcerpt(content) : undefined, // Regenerate excerpt when content changes
                 version,
                 updatedAt: new Date(),
                 tags: {
@@ -445,7 +446,7 @@ export async function PUT(
 
         // Log error
         try {
-            const { projectId, entryId } = await (async () => context.params)();
+            const {projectId, entryId} = await (async () => context.params)();
             const user = await validateAuthAndGetUser();
             await createAuditLog(
                 'CHANGELOG_ENTRY_ERROR',
@@ -465,8 +466,8 @@ export async function PUT(
         }
 
         return NextResponse.json(
-            { error: 'Failed to update changelog entry' },
-            { status: 500 }
+            {error: 'Failed to update changelog entry'},
+            {status: 500}
         );
     }
 }
@@ -548,8 +549,8 @@ export async function PATCH(
 ) {
     try {
         const user = await validateAuthAndGetUser();
-        const { action } = await request.json();
-        const { projectId, entryId } = await (async () => context.params)();
+        const {action, publishedAt} = await request.json();
+        const {projectId, entryId} = await (async () => context.params)();
 
         // Log status update attempt
         try {
@@ -591,8 +592,8 @@ export async function PATCH(
             }
 
             return NextResponse.json(
-                { error: 'Insufficient permissions' },
-                { status: 403 }
+                {error: 'Insufficient permissions'},
+                {status: 403}
             );
         }
 
@@ -637,8 +638,8 @@ export async function PATCH(
             }
 
             return NextResponse.json(
-                { error: 'Entry not found or does not belong to this project' },
-                { status: 404 }
+                {error: 'Entry not found or does not belong to this project'},
+                {status: 404}
             );
         }
 
@@ -649,11 +650,11 @@ export async function PATCH(
             // Allow unpublishing for both ADMIN and STAFF
             if (action === 'unpublish') {
                 const entry = await db.changelogEntry.update({
-                    where: { id: entryId },
+                    where: {id: entryId},
                     data: {
                         publishedAt: null
                     },
-                    include: { tags: true }
+                    include: {tags: true}
                 });
 
                 // Log successful unpublish
@@ -683,11 +684,11 @@ export async function PATCH(
                 // Admins can always publish directly
                 if (user.role === Role.ADMIN) {
                     const entry = await db.changelogEntry.update({
-                        where: { id: entryId },
+                        where: {id: entryId},
                         data: {
-                            publishedAt: new Date()
+                            publishedAt: publishedAt ? new Date(publishedAt) : new Date()
                         },
-                        include: { tags: true }
+                        include: {tags: true}
                     });
 
                     // Log successful admin publish
@@ -716,11 +717,11 @@ export async function PATCH(
                 // Staff can publish directly if the project doesn't require approval OR allowAutoPublish is true
                 if (user.role === Role.STAFF && (!project.requireApproval || project.allowAutoPublish)) {
                     const entry = await db.changelogEntry.update({
-                        where: { id: entryId },
+                        where: {id: entryId},
                         data: {
-                            publishedAt: new Date()
+                            publishedAt: publishedAt ? new Date(publishedAt) : new Date()
                         },
-                        include: { tags: true }
+                        include: {tags: true}
                     });
 
                     // Log successful staff direct publish
@@ -779,20 +780,36 @@ export async function PATCH(
                         }
 
                         return NextResponse.json(
-                            { error: 'A publish request for this entry is already pending' },
-                            { status: 400 }
+                            {error: 'A publish request for this entry is already pending'},
+                            {status: 400}
                         );
                     }
 
                     // Create publish request
+                    const publishRequestData: {
+                        type: string;
+                        staffId: string;
+                        projectId: string;
+                        changelogEntryId: string;
+                        status: string;
+                        metadata?: {customPublishedAt: string};
+                    } = {
+                        type: 'ALLOW_PUBLISH',
+                        staffId: user.id,
+                        projectId,
+                        changelogEntryId: entryId,
+                        status: 'PENDING'
+                    };
+
+                    // Store custom publishedAt in metadata if provided
+                    if (publishedAt) {
+                        publishRequestData.metadata = {
+                            customPublishedAt: publishedAt
+                        };
+                    }
+
                     const publishRequest = await db.changelogRequest.create({
-                        data: {
-                            type: 'ALLOW_PUBLISH',
-                            staffId: user.id,
-                            projectId,
-                            changelogEntryId: entryId,
-                            status: 'PENDING'
-                        }
+                        data: publishRequestData
                     });
 
                     // Log successful publish request creation
@@ -815,7 +832,7 @@ export async function PATCH(
                     return NextResponse.json({
                         message: 'Publish request created, awaiting admin approval',
                         request: publishRequest
-                    }, { status: 202 });
+                    }, {status: 202});
                 }
             }
         }
@@ -838,15 +855,15 @@ export async function PATCH(
         }
 
         return NextResponse.json(
-            { error: 'Invalid action' },
-            { status: 400 }
+            {error: 'Invalid action'},
+            {status: 400}
         );
     } catch (error) {
         console.error('Error updating changelog entry status:', error);
 
         // Log error
         try {
-            const { projectId, entryId } = await (async () => context.params)();
+            const {projectId, entryId} = await (async () => context.params)();
             const user = await validateAuthAndGetUser();
             await createAuditLog(
                 'CHANGELOG_ENTRY_ERROR',
@@ -866,8 +883,8 @@ export async function PATCH(
         }
 
         return NextResponse.json(
-            { error: 'Failed to update changelog entry status' },
-            { status: 500 }
+            {error: 'Failed to update changelog entry status'},
+            {status: 500}
         );
     }
 }
@@ -939,7 +956,7 @@ export async function DELETE(
 ) {
     try {
         const user = await validateAuthAndGetUser();
-        const { projectId, entryId } = await (async () => context.params)();
+        const {projectId, entryId} = await (async () => context.params)();
 
         // Log deletion attempt
         try {
@@ -990,8 +1007,8 @@ export async function DELETE(
             }
 
             return NextResponse.json(
-                { error: 'Entry not found or does not belong to this project' },
-                { status: 404 }
+                {error: 'Entry not found or does not belong to this project'},
+                {status: 404}
             );
         }
 
@@ -1011,7 +1028,7 @@ export async function DELETE(
 
             // Perform the deletion
             const entry = await db.changelogEntry.delete({
-                where: { id: entryId }
+                where: {id: entryId}
             });
 
             // Log successful deletion by admin
@@ -1068,8 +1085,8 @@ export async function DELETE(
                 }
 
                 return NextResponse.json(
-                    { error: 'A deletion request for this entry is already pending' },
-                    { status: 400 }
+                    {error: 'A deletion request for this entry is already pending'},
+                    {status: 400}
                 );
             }
 
@@ -1107,7 +1124,7 @@ export async function DELETE(
             return NextResponse.json({
                 message: 'Deletion request created, awaiting admin approval',
                 request: deleteRequest
-            }, { status: 202 });
+            }, {status: 202});
         }
 
         // Handle viewers and other roles
@@ -1131,15 +1148,15 @@ export async function DELETE(
         }
 
         return NextResponse.json(
-            { error: 'Insufficient permissions' },
-            { status: 403 }
+            {error: 'Insufficient permissions'},
+            {status: 403}
         );
     } catch (error) {
         console.error('Error handling changelog entry deletion:', error);
 
         // Log error
         try {
-            const { projectId, entryId } = await (async () => context.params)();
+            const {projectId, entryId} = await (async () => context.params)();
             const user = await validateAuthAndGetUser();
             await createAuditLog(
                 'CHANGELOG_ENTRY_ERROR',
@@ -1159,8 +1176,8 @@ export async function DELETE(
         }
 
         return NextResponse.json(
-            { error: 'Failed to process deletion request' },
-            { status: 500 }
+            {error: 'Failed to process deletion request'},
+            {status: 500}
         );
     }
 }

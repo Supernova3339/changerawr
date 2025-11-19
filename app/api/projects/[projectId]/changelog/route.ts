@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { validateAuthAndGetUser } from '@/lib/utils/changelog'
+import { validateAuthAndGetUser, generateExcerpt } from '@/lib/utils/changelog'
 import { createAuditLog } from '@/lib/utils/auditLog' // Add this import
 import { db } from '@/lib/db'
 
@@ -149,8 +149,22 @@ export async function GET(
         const [entries, total] = await Promise.all([
             db.changelogEntry.findMany({
                 where,
-                include: {
-                    tags: true
+                select: {
+                    id: true,
+                    title: true,
+                    excerpt: true, // Use excerpt instead of full content for list view
+                    version: true,
+                    publishedAt: true,
+                    scheduledAt: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    tags: {
+                        select: {
+                            id: true,
+                            name: true,
+                            color: true
+                        }
+                    }
                 },
                 orderBy: {
                     createdAt: 'desc'
@@ -381,6 +395,7 @@ export async function POST(
             data: {
                 title,
                 content,
+                excerpt: generateExcerpt(content), // Auto-generate excerpt from content
                 version,
                 changelogId: changelog.id,
                 tags: {

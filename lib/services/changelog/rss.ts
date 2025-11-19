@@ -29,7 +29,7 @@ export function generateRSSFeed(entries: ChangelogEntry[], options: RSSFeedOptio
         <item>
           <title><![CDATA[${entry.title}]]></title>
           <description><![CDATA[${entry.content}]]></description>
-          <link>${link}/entries/${entry.id}</link>
+          <link>${link}/${entry.id}</link>
           <guid isPermaLink="false">${entry.id}</guid>
           <pubDate>${pubDate}</pubDate>
           ${entry.version ? `<version>${entry.version}</version>` : ''}

@@ -7,6 +7,7 @@ export interface CUMModalState {
     buttonModal: boolean;
     alertModal: boolean;
     embedModal: boolean;
+    tableModal: boolean;
 }
 
 export interface UseCUMModalsReturn {
@@ -21,6 +22,7 @@ export function useCUMModals(): UseCUMModalsReturn {
         buttonModal: false,
         alertModal: false,
         embedModal: false,
+        tableModal: false,
     });
 
     const openModal = useCallback((type: CUMExtensionType) => {
@@ -42,6 +44,7 @@ export function useCUMModals(): UseCUMModalsReturn {
             buttonModal: false,
             alertModal: false,
             embedModal: false,
+            tableModal: false,
         });
     }, []);
 

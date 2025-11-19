@@ -30,7 +30,7 @@ interface ChangelogViewProps {
 }
 
 // Track entry view when it becomes visible
-function useEntryViewTracking(entryId: string, projectId: string) {
+export function useEntryViewTracking(entryId: string, projectId: string) {
     const elementRef = useRef<HTMLDivElement>(null);
     const hasTracked = useRef(false);
 

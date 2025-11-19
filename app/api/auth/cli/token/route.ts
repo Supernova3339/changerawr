@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {z} from 'zod';
 import {db} from '@/lib/db';
-import {generateTokens} from '@/lib/auth/tokens';
+import {generateCLITokens} from '@/lib/auth/tokens';
 
 const tokenExchangeSchema = z.object({
     code: z.string().min(1, 'Authorization code is required'),
@@ -55,16 +55,15 @@ const tokenExchangeSchema = z.object({
  *     }
  *   }
  * }
- * @error 400 Invalid or expired authorization code
- * @error 404 Authorization code not found
- * @error 500 Internal server error
+ * @response 400 - Invalid request or expired code
+ * @response 500 - Internal server error
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const {code, expires} = tokenExchangeSchema.parse(body);
 
-        // Find the authorization code in the database
+        // Validate the authorization code
         const authCode = await db.cliAuthCode.findUnique({
             where: {code},
             include: {
@@ -82,24 +81,19 @@ export async function POST(request: NextRequest) {
         if (!authCode) {
             return NextResponse.json(
                 {error: 'Invalid authorization code'},
-                {status: 404}
+                {status: 400}
             );
         }
 
-        // Check if the code has expired
+        // Check if code has expired
         if (authCode.expiresAt < new Date()) {
-            // Clean up expired code
-            await db.cliAuthCode.delete({
-                where: {code},
-            });
-
             return NextResponse.json(
                 {error: 'Authorization code has expired'},
                 {status: 400}
             );
         }
 
-        // Check if the code has already been used
+        // Check if code has already been used
         if (authCode.usedAt) {
             return NextResponse.json(
                 {error: 'Authorization code has already been used'},
@@ -116,8 +110,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Generate JWT tokens
-        const tokens = await generateTokens(authCode.user.id);
+        // Generate CLI-specific JWT tokens (30 day access, 90 day refresh)
+        const tokens = await generateCLITokens(authCode.user.id);
 
         // Mark the authorization code as used
         await db.cliAuthCode.update({
@@ -132,10 +126,11 @@ export async function POST(request: NextRequest) {
         });
 
         // Return tokens in OAuth2-compatible format
+        // 30 days = 30 * 24 * 60 * 60 = 2,592,000 seconds
         return NextResponse.json({
             access_token: tokens.accessToken,
             refresh_token: tokens.refreshToken,
-            expires_in: 60 * 60, // 60 minutes in seconds
+            expires_in: 30 * 24 * 60 * 60, // 30 days in seconds
             token_type: 'Bearer',
             user: authCode.user,
         });

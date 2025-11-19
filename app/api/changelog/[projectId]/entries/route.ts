@@ -195,12 +195,19 @@ export async function GET(
                     {publishedAt: sortOrder},
                     {id: sortOrder}
                 ],
-                include: {
+                select: {
+                    id: true,
+                    title: true,
+                    excerpt: true, // Use excerpt instead of full content for list view
+                    version: true,
+                    publishedAt: true,
+                    createdAt: true,
+                    updatedAt: true,
                     tags: {
                         select: {
                             id: true,
                             name: true,
-                            color: true  // Include color field in the response
+                            color: true
                         }
                     }
                 }

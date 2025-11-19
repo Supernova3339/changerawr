@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 
 // Validation schemas
 const createInvitationSchema = z.object({
-    email: z.string().email(),
+    email: z.string().toLowerCase().email(),
     role: z.enum(['ADMIN', 'STAFF']),
     expiresAt: z.string().datetime().optional()
 });
@@ -137,13 +137,13 @@ export async function POST(request: Request) {
         const validatedData = createInvitationSchema.parse(body);
 
         // Prevent inviting system emails
-        if (validatedData.email === 'api.key@changerawr.sys') {
+        if (validatedData.email.endsWith('@changerawr.sys')) {
             // Log attempted invitation of system email
             try {
                 await createAuditLog(
                     'INVALID_INVITATION_ATTEMPT',
                     user.id,
-                    user.id, // Using admin's own ID to avoid foreign key issues
+                    user.id,
                     {
                         reason: 'System email address',
                         attemptedEmail: validatedData.email

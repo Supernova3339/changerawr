@@ -1,8 +1,8 @@
-import { nanoid } from 'nanoid';
-import { render } from '@react-email/render';
-import { createTransport, SendMailOptions } from 'nodemailer';
-import { db } from '@/lib/db';
-import { PasswordResetEmail } from '@/emails/password-reset';
+import {nanoid} from 'nanoid';
+import {render} from '@react-email/render';
+import {createTransport, SendMailOptions} from 'nodemailer';
+import {db} from '@/lib/db';
+import {PasswordResetEmail} from '@/emails/password-reset';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import React from "react";
 
@@ -22,11 +22,11 @@ export interface SendPasswordResetEmailResult {
  */
 export async function createPasswordResetAndSendEmail(options: PasswordResetOptions): Promise<SendPasswordResetEmailResult> {
     try {
-        const { email, resetBaseUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password` } = options;
+        const {email, resetBaseUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`} = options;
 
         // Check if password reset is enabled in system settings
         const systemConfig = await db.systemConfig.findFirst({
-            where: { id: 1 }
+            where: {id: 1}
         });
 
         if (!systemConfig || !systemConfig.enablePasswordReset) {
@@ -46,8 +46,16 @@ export async function createPasswordResetAndSendEmail(options: PasswordResetOpti
 
         // Find user by email
         const user = await db.user.findUnique({
-            where: { email: email.toLowerCase() }
+            where: {email: email.toLowerCase()}
         });
+
+        if (email.toLowerCase().endsWith('@changerawr.sys')) {
+            return {
+                success: false,
+                message: 'System accounts cannot receive password reset emails.'
+            } satisfies SendPasswordResetEmailResult
+        }
+
 
         if (!user) {
             // Don't reveal that the user doesn't exist for security
@@ -111,8 +119,8 @@ export async function createPasswordResetAndSendEmail(options: PasswordResetOpti
             expiresInMinutes: 60
         });
 
-        const htmlPromise = render(React.isValidElement(emailComponent) ? emailComponent : React.createElement("div"), { pretty: true });
-        const textPromise = render(React.isValidElement(emailComponent) ? emailComponent : React.createElement("div"), { plainText: true });
+        const htmlPromise = render(React.isValidElement(emailComponent) ? emailComponent : React.createElement("div"), {pretty: true});
+        const textPromise = render(React.isValidElement(emailComponent) ? emailComponent : React.createElement("div"), {plainText: true});
 
         const html = await htmlPromise;
         const text = await textPromise;
@@ -152,7 +160,7 @@ export async function validatePasswordResetToken(token: string): Promise<{
 }> {
     try {
         const passwordReset = await db.passwordReset.findUnique({
-            where: { token }
+            where: {token}
         });
 
         if (!passwordReset) {
@@ -209,19 +217,19 @@ export async function resetPassword(token: string, newPassword: string): Promise
         }
 
         // Hash the new password
-        const { hashPassword } = await import('@/lib/auth/password');
+        const {hashPassword} = await import('@/lib/auth/password');
         const hashedPassword = await hashPassword(newPassword);
 
         // Update the user's password
         await db.user.update({
-            where: { id: validation.userId },
-            data: { password: hashedPassword }
+            where: {id: validation.userId},
+            data: {password: hashedPassword}
         });
 
         // Mark the token as used
         await db.passwordReset.update({
-            where: { token },
-            data: { usedAt: new Date() }
+            where: {token},
+            data: {usedAt: new Date()}
         });
 
         return {

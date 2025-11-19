@@ -28,10 +28,18 @@ export interface CUMEmbedConfig {
     };
 }
 
+export interface CUMTableConfig {
+    rows: number;
+    columns: number;
+    hasHeader: boolean;
+    alignments: ('left' | 'center' | 'right')[];
+    data: string[][];
+}
+
 export interface CUMModalProps {
     isOpen: boolean;
     onClose: () => void;
     onInsert: (markdown: string) => void;
 }
 
-export type CUMExtensionType = 'button' | 'alert' | 'embed';
+export type CUMExtensionType = 'button' | 'alert' | 'embed' | 'table';

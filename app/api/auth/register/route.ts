@@ -50,6 +50,14 @@ export async function POST(request: Request) {
                 )
             }
 
+            // Block registration for system accounts
+            if (invitation.email.endsWith('@changerawr.sys')) {
+                return NextResponse.json(
+                    { error: 'Cannot register with system email addresses' },
+                    { status: 400 }
+                )
+            }
+
             // Hash password
             const hashedPassword = await hashPassword(password)
 

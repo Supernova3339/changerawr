@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import { validateAuthAndGetUser } from '@/lib/utils/changelog';
-import { db } from '@/lib/db';
-import { z } from 'zod';
-import { sendChangelogEmail } from '@/lib/services/email/notification';
+import {NextResponse} from 'next/server';
+import {validateAuthAndGetUser} from '@/lib/utils/changelog';
+import {db} from '@/lib/db';
+import {z} from 'zod';
+import {sendChangelogEmail} from '@/lib/services/email/notification';
 
 // Validation schema for send email request
 const sendEmailSchema = z.object({
@@ -34,22 +34,22 @@ export async function POST(
 ) {
     try {
         await validateAuthAndGetUser();
-        const { projectId } = await context.params;
+        const {projectId} = await context.params;
 
         // Verify project access
         const project = await db.project.findUnique({
-            where: { id: projectId },
-            include: { emailConfig: true }
+            where: {id: projectId},
+            include: {emailConfig: true}
         });
 
         if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            return NextResponse.json({error: 'Project not found'}, {status: 404});
         }
 
         if (!project.emailConfig || !project.emailConfig.enabled) {
             return NextResponse.json({
                 error: 'Email notifications are not properly configured or enabled for this project'
-            }, { status: 400 });
+            }, {status: 400});
         }
 
         // Detect custom domain from request headers
@@ -77,7 +77,7 @@ export async function POST(
         if (!hasRecipients && !hasSubscriptionTypes) {
             return NextResponse.json({
                 error: 'No recipients specified. You must provide either direct recipients or subscription types for subscribers.'
-            }, { status: 400 });
+            }, {status: 400});
         }
 
         // If sending to subscribers, fetch subscribers based on subscription types
@@ -126,8 +126,8 @@ export async function POST(
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Validation failed', details: error.errors },
-                { status: 400 }
+                {error: 'Validation failed', details: error.errors},
+                {status: 400}
             );
         }
 
@@ -137,7 +137,7 @@ export async function POST(
                 message: (error instanceof Error) ? error.message : 'Unknown error',
                 stack: process.env.NODE_ENV === 'development' && (error instanceof Error) ? error.stack : undefined
             },
-            { status: 500 }
+            {status: 500}
         );
     }
 }

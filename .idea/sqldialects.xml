@@ -1,25 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250215051621_add_invitation_links/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250221000121_add_new_request_types/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250419000001_add_password_reset/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250421000001_add_notification_preferences/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250504203021_passkey_support/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250504203707_add_last_challenge/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250504211358_add_two_factor_mode/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250504212400_add_two_factor_session/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250512000000_add_github_integration/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250610120000_fix_user_deletion_constraints/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250613040144_changelog_analytics/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250624024525_add_custom_domains/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250625030954_add_custom_domains_to_email_notifications/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250625120000_add_changelog_scheduling/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250627020135_add_color_field_to_changelog_tag/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250628171029_add_telemetry/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250628180800_add_telemetry_support/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250628215000_complete_telemetry_fix/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250628215100_fix_telemetry_casting/migration.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/prisma/migrations/20250628230000_add_changelogentryid_back/migration.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/prisma/migrations/20251111210147_add_api_key_and_widgets/migration.sql" dialect="PostgreSQL" />
   </component>
 </project>

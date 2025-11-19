@@ -31,7 +31,7 @@ import {
     MousePointer,
     ExternalLink
 } from 'lucide-react';
-import {renderMarkdown} from '@/lib/services/core/markdown';
+import {renderMarkdown} from '@/lib/services/core/markdown/useCustomExtensions';
 import {CUMModalProps, CUMButtonConfig} from '@/components/markdown-editor/types/cum-extensions';
 
 export const CUMButtonModal: React.FC<CUMModalProps> = ({

@@ -30,6 +30,14 @@ const buttonVariants = cva(
                     "hover:after:bg-white/10 active:after:bg-white/5",
                     "dark:border-destructive/30 dark:before:hidden dark:after:-inset-px",
                 ],
+                success: [
+                    "border border-success/20 bg-green-500 dark:bg-green-600 text-white",
+                    "before:absolute before:inset-0 before:-z-10 before:rounded-[calc(var(--radius)-1px)] before:bg-green-500 dark:before:bg-green-600 before:shadow-sm",
+                    "after:absolute after:inset-0 after:-z-10 after:rounded-[calc(var(--radius)-1px)]",
+                    "after:shadow-[inset_0_1px_theme(colors.white/15%)]",
+                    "hover:after:bg-white/10 active:after:bg-white/5",
+                    "dark:border-green-500/30 dark:before:hidden dark:after:-inset-px",
+                ],
                 outline: [
                     "border border-border bg-background text-foreground",
                     "hover:bg-accent/50 hover:text-accent-foreground",

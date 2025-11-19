@@ -13,6 +13,7 @@ const systemConfigSchema = z.object({
     enableAnalytics: z.boolean(),
     enableNotifications: z.boolean(),
     allowTelemetry: z.enum(['prompt', 'enabled', 'disabled']),
+    adminOnlyApiKeyCreation: z.boolean(),
 })
 
 // Helper functions to map telemetry states
@@ -68,6 +69,7 @@ export async function GET() {
                 enableAnalytics: true,
                 enableNotifications: true,
                 allowTelemetry: 'prompt',
+                adminOnlyApiKeyCreation: false,
             })
         }
 
@@ -79,6 +81,7 @@ export async function GET() {
             enableAnalytics: config.enableAnalytics,
             enableNotifications: config.enableNotifications,
             allowTelemetry: mapTelemetryStateToString(config.allowTelemetry),
+            adminOnlyApiKeyCreation: config.adminOnlyApiKeyCreation,
         }
 
         return NextResponse.json(mappedConfig)
@@ -266,6 +269,7 @@ export async function PATCH(request: Request) {
             enableAnalytics: validatedData.enableAnalytics,
             enableNotifications: validatedData.enableNotifications,
             allowTelemetry: dbTelemetryState,
+            adminOnlyApiKeyCreation: validatedData.adminOnlyApiKeyCreation,
         }
 
         // Update the system config in database
@@ -322,6 +326,7 @@ export async function PATCH(request: Request) {
             enableAnalytics: config.enableAnalytics,
             enableNotifications: config.enableNotifications,
             allowTelemetry: mapTelemetryStateToString(config.allowTelemetry),
+            adminOnlyApiKeyCreation: config.adminOnlyApiKeyCreation,
         }
 
         console.log('System configuration updated successfully')

@@ -100,7 +100,8 @@ export default function UsersPage() {
         queryFn: async () => {
             const response = await fetch('/api/admin/users');
             if (!response.ok) throw new Error('Failed to fetch users');
-            return response.json();
+            const data = await response.json();
+            return data.filter((user: UserData) => !user.email.endsWith('@changerawr.sys'));
         },
     });
 
