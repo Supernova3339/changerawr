@@ -21,7 +21,7 @@ If you don't know what a changelog is, check out [betterauth](https://www.better
 
 **Fully customizable.** Do things your way. No vendor lock-in, no forced workflows.
 
-**For everyone.** Whether you're a solo developer, small business, or enterprise team - Changerawr scales with you.
+**For everyone.** Whether you're a solo developer, small business, or enterprise team - Changerawr scales with you. ( yes, this means you can use it for commercial usage! just please do reach out if you do, I would love to know how your using Changerawr! )
 
 ## 🚀 Features
 
