@@ -240,9 +240,9 @@ We welcome contributions! Whether it's:
 
 ## 📄 License
 
-Sponsorware License - see [LICENSE](LICENSE) for details.
+Non-Commercial Open Source License - see [LICENSE](LICENSE) for details.
 
-This project is sponsorware, meaning you're free to use and modify the code, but you cannot create competing commercial services from it.
+Changerawr is open source and free to use, modify, and fork (including closed-source versions). You can use it commercially in your business, but you cannot profit from selling the software itself or charge users for access to it. All features remain free forever.
 
 ## 🙋‍♂️ Support
 
