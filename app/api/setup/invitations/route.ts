@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { Role } from '@prisma/client'
 import { nanoid } from 'nanoid'
+import { isSetupCompleted } from '@/lib/services/core/setup-completion'
 
 /**
  * Schema for validating invitation creation request body.
@@ -63,11 +64,8 @@ const createInvitationSchema = z.object({
  */
 export async function POST(request: Request) {
     try {
-        // Block access once setup is complete
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        // Block access once the wizard has actually been finished
+        if (await isSetupCompleted()) {
             return NextResponse.json(
                 { error: 'Setup already completed. Use the admin panel to manage invitations.' },
                 { status: 403 }
@@ -185,11 +183,8 @@ export async function POST(request: Request) {
  */
 export async function GET() {
     try {
-        // Block access once setup is complete
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        // Block access once the wizard has actually been finished
+        if (await isSetupCompleted()) {
             return NextResponse.json(
                 { error: 'Setup already completed. Use the admin panel to manage invitations.' },
                 { status: 403 }

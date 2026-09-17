@@ -50,9 +50,6 @@ COPY package.json package-lock.json* ./
 # postinstall runs scripts/sync-markdown.js, so scripts/ must exist before npm install
 COPY scripts ./scripts
 RUN npm install --legacy-peer-deps
-# Install Prisma client with exact version match
-RUN npm uninstall prisma @prisma/client --legacy-peer-deps
-RUN npm install prisma@6.7.0 @prisma/client@6.7.0 --legacy-peer-deps
 # Install tsx explicitly
 RUN npm install -g tsx
 

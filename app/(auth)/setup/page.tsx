@@ -2,26 +2,29 @@
 
 import React, {useState, useEffect} from 'react';
 import {Loader2, CheckCircle2} from 'lucide-react';
+import {ThemeStep} from '@/components/setup/steps/theme-step';
 import {WelcomeStep} from '@/components/setup/steps/welcome-step';
 import {AdminStep} from '@/components/setup/steps/admin-step';
 import {SettingsStep} from '@/components/setup/steps/settings-step';
 import {OAuthStep} from '@/components/setup/steps/oauth-step';
 import {TeamStep} from '@/components/setup/steps/team-step'; // New import
 import {CompletionStep} from '@/components/setup/steps/completion-step';
+import {SetupBackground} from '@/components/setup/setup-background';
 import {Alert, AlertDescription} from '@/components/ui/alert';
 import {Button} from '@/components/ui/button';
 import Link from 'next/link';
 import {SetupProvider, useSetup} from '@/components/setup/setup-context';
 import {motion, AnimatePresence} from 'framer-motion';
 
+const VISIBLE_STEPS = ['welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
+
 function StepIndicator() {
     const {currentStep} = useSetup();
-    const steps = ['welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
-    const currentIndex = steps.indexOf(currentStep);
+    const currentIndex = VISIBLE_STEPS.indexOf(currentStep);
 
     return (
         <div className="flex justify-center items-center gap-2 mb-6">
-            {steps.map((step, index) => (
+            {VISIBLE_STEPS.map((step, index) => (
                 <div
                     key={step}
                     className={`h-2 rounded-full transition-all ${
@@ -39,50 +42,79 @@ function StepIndicator() {
 
 function SetupContent() {
     const {currentStep, goToNextStep, goToPreviousStep, skipCurrentStep} = useSetup();
+    const isTheme = currentStep === 'theme';
 
+    // The theme step is a full-bleed, full-screen experience with its own
+    // background — it replaces the normal card layout entirely rather than
+    // sitting inside it. Both branches share one AnimatePresence so going
+    // back from Welcome into the theme picker cross-fades instead of
+    // hard-cutting between the two layouts.
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
-            <StepIndicator/>
-
-            <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
+            {isTheme ? (
                 <motion.div
-                    key={currentStep}
-                    initial={{opacity: 0, y: 10}}
-                    animate={{opacity: 1, y: 0}}
-                    exit={{opacity: 0, y: -10}}
-                    transition={{duration: 0.3}}
-                    className="w-full"
+                    key="theme"
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
+                    exit={{opacity: 0}}
+                    transition={{duration: 0.4}}
                 >
-                    {currentStep === 'welcome' && (
-                        <WelcomeStep onNext={goToNextStep}/>
-                    )}
-
-                    {currentStep === 'admin' && (
-                        <AdminStep onNext={goToNextStep} onBack={goToPreviousStep}/>
-                    )}
-
-                    {currentStep === 'settings' && (
-                        <SettingsStep onNext={goToNextStep} onBack={goToPreviousStep}/>
-                    )}
-
-                    {currentStep === 'oauth' && (
-                        <OAuthStep onNext={goToNextStep} onBack={goToPreviousStep}/>
-                    )}
-
-                    {currentStep === 'team' && (
-                        <TeamStep
-                            onNext={goToNextStep}
-                            onBack={goToPreviousStep}
-                            onSkip={skipCurrentStep}
-                        />
-                    )}
-
-                    {currentStep === 'complete' && (
-                        <CompletionStep/>
-                    )}
+                    <ThemeStep onNext={goToNextStep}/>
                 </motion.div>
-            </AnimatePresence>
-        </div>
+            ) : (
+                <motion.div
+                    key="wizard"
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
+                    exit={{opacity: 0}}
+                    transition={{duration: 0.4}}
+                >
+                    <SetupBackground/>
+                    <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
+                        <StepIndicator/>
+
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentStep}
+                                initial={{opacity: 0, y: 10}}
+                                animate={{opacity: 1, y: 0}}
+                                exit={{opacity: 0, y: -10}}
+                                transition={{duration: 0.3}}
+                                className="w-full flex justify-center"
+                            >
+                                {currentStep === 'welcome' && (
+                                    <WelcomeStep onNext={goToNextStep} onBack={goToPreviousStep}/>
+                                )}
+
+                                {currentStep === 'admin' && (
+                                    <AdminStep onNext={goToNextStep} onBack={goToPreviousStep}/>
+                                )}
+
+                                {currentStep === 'settings' && (
+                                    <SettingsStep onNext={goToNextStep} onBack={goToPreviousStep}/>
+                                )}
+
+                                {currentStep === 'oauth' && (
+                                    <OAuthStep onNext={goToNextStep} onBack={goToPreviousStep}/>
+                                )}
+
+                                {currentStep === 'team' && (
+                                    <TeamStep
+                                        onNext={goToNextStep}
+                                        onBack={goToPreviousStep}
+                                        onSkip={skipCurrentStep}
+                                    />
+                                )}
+
+                                {currentStep === 'complete' && (
+                                    <CompletionStep/>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 
@@ -128,19 +160,24 @@ export default function SetupPage() {
 
     if (isChecking) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary"/>
-                    <p>Checking setup status...</p>
+            <>
+                <SetupBackground/>
+                <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+                    <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary"/>
+                        <p>Checking setup status...</p>
+                    </div>
                 </div>
-            </div>
+            </>
         );
     }
 
     if (!canSetup) {
 
         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
+            <>
+                <SetupBackground/>
+                <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
                 <div className="w-full max-w-md space-y-4">
                     <div className="text-center space-y-2">
                         <CheckCircle2 className="h-12 w-12 text-primary mx-auto"/>
@@ -185,7 +222,8 @@ export default function SetupPage() {
                         <Link href="/login">Go to Login</Link>
                     </Button>
                 </div>
-            </div>
+                </div>
+            </>
         );
     }
 

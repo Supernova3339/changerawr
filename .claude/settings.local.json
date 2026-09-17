@@ -20,7 +20,10 @@
       "Bash(npm link:*)",
       "Bash(grep:*)",
       "Bash(npx prisma migrate dev:*)",
-      "Bash(timeout 180 npm run build:*)"
+      "Bash(timeout 180 npm run build:*)",
+      "Bash(Test-Path *)",
+      "Bash(Get-Item \"C:\\\\Users\\\\Nova\\\\WebstormProjects\\\\changerawr\\\\extensions\\\\changerawr\\\\highlight\")",
+      "Bash(Select-Object -ExpandProperty LinkType)"
     ],
     "deny": [],
     "ask": []

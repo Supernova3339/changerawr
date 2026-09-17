@@ -1,53 +1,71 @@
 'use client';
 
 import React from 'react';
-import { User, Settings, Shield } from 'lucide-react';
+import { Globe, Heart, ShieldCheck, User, Users } from 'lucide-react';
 import { SetupStep } from '@/components/setup/setup-step';
+import { appInfo } from '@/lib/app-info';
 
 interface WelcomeStepProps {
     onNext: () => void;
+    onBack: () => void;
 }
 
-export function WelcomeStep({ onNext }: WelcomeStepProps) {
+const roadmap = [
+    { icon: User, title: 'Admin Account', description: 'Create your administrator login' },
+    { icon: Globe, title: 'Preferences', description: 'Timezone for dates and scheduling' },
+    { icon: ShieldCheck, title: 'Single Sign-On', description: 'Optional — connect an SSO provider' },
+    { icon: Users, title: 'Invite Your Team', description: 'Optional — send invite links' },
+];
+
+const LICENSE_URL = 'https://github.com/Supernova3339/changerawr/blob/master/LICENSE';
+
+export function WelcomeStep({ onNext, onBack }: WelcomeStepProps) {
     return (
         <SetupStep
             title="Welcome to Changerawr"
-            description="Let's get your system set up in just a few steps"
+            description="Thanks for choosing SuperSoft (Supernova Software, LLC) as your changelogging provider. Here's what's next:"
             onNext={onNext}
+            onBack={onBack}
             hideFooter={false}
-            disableBack={true}
             nextLabel="Get Started"
         >
-            <div className="space-y-4">
-                <div className="flex items-start space-x-4 p-4 bg-muted rounded-lg">
-                    <User className="h-6 w-6 mt-1 text-primary" />
-                    <div>
-                        <h3 className="font-medium">Admin Account</h3>
-                        <p className="text-sm text-muted-foreground">
-                            Create your administrator account
-                        </p>
-                    </div>
+            <div className="space-y-6">
+                <div className="space-y-4">
+                    {roadmap.map(({ icon: Icon, title, description }) => (
+                        <div key={title} className="flex items-start gap-3">
+                            <Icon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                                <div className="text-sm font-medium">{title}</div>
+                                <div className="text-sm text-muted-foreground">{description}</div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-muted rounded-lg">
-                    <Settings className="h-6 w-6 mt-1 text-primary" />
-                    <div>
-                        <h3 className="font-medium">System Settings</h3>
-                        <p className="text-sm text-muted-foreground">
-                            Configure your system preferences
-                        </p>
-                    </div>
-                </div>
+                <a
+                    href={appInfo.sponsors_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground w-fit"
+                >
+                    <Heart className="h-4 w-4" />
+                    <span className="underline underline-offset-4">
+                        Sponsor Changerawr for an extended license
+                    </span>
+                </a>
 
-                <div className="flex items-start space-x-4 p-4 bg-muted rounded-lg">
-                    <Shield className="h-6 w-6 mt-1 text-primary" />
-                    <div>
-                        <h3 className="font-medium">Security</h3>
-                        <p className="text-sm text-muted-foreground">
-                            Set up your security preferences
-                        </p>
-                    </div>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                    By installing this software, you agree to the{' '}
+                    <a
+                        href={LICENSE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-foreground"
+                    >
+                        Changerawr License
+                    </a>
+                    , whether you&apos;ve read it or not.
+                </p>
             </div>
         </SetupStep>
     );

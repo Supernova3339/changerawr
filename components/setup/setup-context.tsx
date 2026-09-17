@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 
-export type SetupStep = 'welcome' | 'admin' | 'settings' | 'oauth' | 'team' | 'complete';
+export type SetupStep = 'theme' | 'welcome' | 'admin' | 'settings' | 'oauth' | 'team' | 'complete';
 
 interface SetupContextType {
     currentStep: SetupStep;
@@ -17,16 +17,22 @@ interface SetupContextType {
     isStepCompleted: (step: SetupStep) => boolean;
     markStepCompleted: (step: SetupStep) => void;
     checkSetupStatus: () => Promise<void>;
+    // The theme picked in the very first step, before an account exists.
+    // Carried through so it can be sent along with admin creation instead of
+    // needing a second, separate write after the fact.
+    selectedTheme: 'light' | 'dark' | null;
+    setSelectedTheme: (theme: 'light' | 'dark') => void;
 }
 
 const SetupContext = createContext<SetupContextType | undefined>(undefined);
 
-const stepOrder: SetupStep[] = ['welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
+const stepOrder: SetupStep[] = ['theme', 'welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
 
 export const SetupProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-    const [currentStep, setCurrentStep] = useState<SetupStep>('welcome');
+    const [currentStep, setCurrentStep] = useState<SetupStep>('theme');
     const [completedSteps, setCompletedSteps] = useState<SetupStep[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedTheme, setSelectedTheme] = useState<'light' | 'dark' | null>(null);
     const router = useRouter();
 
     const checkSetupStatus = async () => {
@@ -60,8 +66,8 @@ export const SetupProvider: React.FC<{children: React.ReactNode}> = ({ children 
 
         } catch (error) {
             console.error('❌ checkSetupStatus: Error occurred:', error);
-            console.log('🎬 checkSetupStatus: Error fallback - setting to welcome');
-            setCurrentStep('welcome');
+            console.log('🎬 checkSetupStatus: Error fallback - setting to theme');
+            setCurrentStep('theme');
             toast({
                 title: 'Error',
                 description: 'Failed to check setup status',
@@ -118,7 +124,9 @@ export const SetupProvider: React.FC<{children: React.ReactNode}> = ({ children 
                 skipCurrentStep,
                 isStepCompleted,
                 markStepCompleted,
-                checkSetupStatus
+                checkSetupStatus,
+                selectedTheme,
+                setSelectedTheme
             }}
         >
             {children}

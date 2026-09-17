@@ -192,8 +192,10 @@ export default function RegisterPage({params}: { params: Promise<{ token: string
                 })
             })
 
+            const responseData = await response.json()
+
             if (!response.ok) {
-                throw new Error('Registration failed')
+                throw new Error(responseData.message || responseData.error || 'Registration failed')
             }
 
             setIsSuccess(true)
@@ -203,8 +205,7 @@ export default function RegisterPage({params}: { params: Promise<{ token: string
                 router.push('/login')
             }, 3000)
         } catch (err: unknown) {
-            setError('Unable to complete registration')
-            console.log(err)
+            setError(err instanceof Error ? err.message : 'Unable to complete registration')
         }
     }
 

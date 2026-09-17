@@ -2,7 +2,7 @@ import {NextResponse} from 'next/server';
 import {z} from 'zod';
 import {setupEasypanelProvider} from '@/lib/auth/providers/easypanel';
 import {setupPocketIDProvider} from '@/lib/auth/providers/pocketid';
-import {db} from '@/lib/db';
+import {isSetupCompleted} from '@/lib/services/core/setup-completion';
 
 /**
  * Schema for validating OAuth provider setup request.
@@ -20,11 +20,8 @@ const oauthSetupSchema = z.object({
  */
 export async function POST(request: Request) {
     try {
-        // Block access once setup is complete
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        // Block access once the wizard has actually been finished
+        if (await isSetupCompleted()) {
             return NextResponse.json(
                 { error: 'Setup already completed. Use the admin panel to manage OAuth providers.' },
                 { status: 403 }

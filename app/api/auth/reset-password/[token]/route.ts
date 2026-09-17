@@ -4,6 +4,7 @@ import {
     validatePasswordResetToken,
     resetPassword
 } from '@/lib/services/auth/password-reset';
+import { checkPasswordBreach, passwordBreachErrorPayload } from '@/lib/services/auth/password-breach';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
 
 // Validation schema for password reset
@@ -131,6 +132,12 @@ export async function POST(
         const body = await request.json();
 
         const { password } = resetPasswordSchema.parse(body);
+
+        // Reject known-compromised passwords
+        const breach = await checkPasswordBreach(password);
+        if (breach.isBreached) {
+            return NextResponse.json(passwordBreachErrorPayload(breach.breachCount), { status: 422 });
+        }
 
         const result = await resetPassword(token, password);
 

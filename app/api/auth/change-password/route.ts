@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { validateAuthAndGetUser } from '@/lib/utils/changelog';
 import { verifyPassword, hashPassword } from '@/lib/auth/password';
+import { checkPasswordBreach, passwordBreachErrorPayload } from '@/lib/services/auth/password-breach';
 import { z } from 'zod';
 
 const changePasswordSchema = z.object({
@@ -64,6 +65,12 @@ export async function POST(request: Request) {
                 { error: 'Current password is incorrect' },
                 { status: 401 }
             );
+        }
+
+        // Reject known-compromised passwords
+        const breach = await checkPasswordBreach(newPassword);
+        if (breach.isBreached) {
+            return NextResponse.json(passwordBreachErrorPayload(breach.breachCount), { status: 422 });
         }
 
         // Hash the new password

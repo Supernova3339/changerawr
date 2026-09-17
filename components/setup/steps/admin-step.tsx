@@ -8,6 +8,7 @@ import {SetupStep} from '@/components/setup/setup-step';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
+import {Alert, AlertDescription} from '@/components/ui/alert';
 import {useSetup} from '@/components/setup/setup-context';
 import {toast} from '@/hooks/use-toast';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
@@ -19,6 +20,7 @@ import {
     Mail,
     Lock,
     AlertCircle,
+    ShieldAlert,
     Key
 } from 'lucide-react';
 import {motion, AnimatePresence} from 'framer-motion';
@@ -45,7 +47,8 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
-    const {markStepCompleted, isStepCompleted} = useSetup();
+    const [breachWarning, setBreachWarning] = useState<string | null>(null);
+    const {markStepCompleted, isStepCompleted, selectedTheme} = useSetup();
     const isCompleted = isStepCompleted('admin');
 
     const {
@@ -83,6 +86,11 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
         setPasswordStrength(Math.min(3, Math.floor(strength / 2)));
     }, [password]);
 
+    // Clear a stale breach warning once the user changes the password
+    useEffect(() => {
+        setBreachWarning(null);
+    }, [password]);
+
     const onSubmit = async (data: AdminFormValues) => {
         if (isCompleted) {
             onNext();
@@ -90,16 +98,21 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
         }
 
         setIsSubmitting(true);
+        setBreachWarning(null);
         try {
             const response = await fetch('/api/setup/admin', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
+                body: JSON.stringify({...data, theme: selectedTheme ?? undefined})
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create admin account');
+                if (errorData.error === 'password_breached') {
+                    setBreachWarning(errorData.message);
+                    return;
+                }
+                throw new Error(errorData.message || errorData.error || 'Failed to create admin account');
             }
 
             markStepCompleted('admin');
@@ -322,6 +335,21 @@ export function AdminStep({onNext, onBack}: AdminStepProps) {
                                 <span className="inline-block">⚠️</span>
                                 {errors.password.message}
                             </motion.p>
+                        )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                        {breachWarning && (
+                            <motion.div
+                                initial={{opacity: 0, height: 0}}
+                                animate={{opacity: 1, height: 'auto'}}
+                                exit={{opacity: 0, height: 0}}
+                            >
+                                <Alert variant="destructive" className="mt-2">
+                                    <ShieldAlert className="h-4 w-4"/>
+                                    <AlertDescription>{breachWarning}</AlertDescription>
+                                </Alert>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </motion.div>

@@ -6,7 +6,7 @@ import {
     verifyAutoSetupConfiguration,
     getOAuthServerInfo
 } from '@/lib/auth/providers/easypanel/auto-setup';
-import { db } from '@/lib/db';
+import { isSetupCompleted } from '@/lib/services/core/setup-completion';
 
 /**
  * Schema for validating auto OAuth setup request body.
@@ -72,11 +72,8 @@ const autoSetupSchema = z.object({
  */
 export async function POST(request: Request) {
     try {
-        // Block access once setup is complete
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        // Block access once the wizard has actually been finished
+        if (await isSetupCompleted()) {
             return NextResponse.json(
                 { success: false, error: 'Setup already completed. Use the admin panel to manage OAuth providers.' },
                 { status: 403 }
@@ -226,11 +223,8 @@ export async function POST(request: Request) {
  */
 export async function GET() {
     try {
-        // Block access once setup is complete
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        // Block access once the wizard has actually been finished
+        if (await isSetupCompleted()) {
             return NextResponse.json({ error: 'Setup already completed' }, { status: 403 })
         }
 

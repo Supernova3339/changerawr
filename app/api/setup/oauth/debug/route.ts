@@ -4,7 +4,7 @@ import {
     getOAuthServerInfo
 } from '@/lib/auth/providers/easypanel/auto-setup';
 import {isAutoOAuthAvailable} from "@/lib/auth/providers/easypanel/client";
-import { db } from '@/lib/db';
+import { isSetupCompleted } from '@/lib/services/core/setup-completion';
 
 /**
  * @method GET
@@ -14,10 +14,7 @@ import { db } from '@/lib/db';
 export async function GET() {
     try {
         // Only accessible during initial setup
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        if (await isSetupCompleted()) {
             return NextResponse.json({ error: 'Setup already completed' }, { status: 403 })
         }
 
@@ -62,10 +59,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         // Only accessible during initial setup
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        if (await isSetupCompleted()) {
             return NextResponse.json({ success: false, error: 'Setup already completed' }, { status: 403 })
         }
 

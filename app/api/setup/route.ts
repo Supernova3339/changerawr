@@ -3,6 +3,8 @@ import {NextResponse} from 'next/server';
 import {db} from '@/lib/db';
 import {SetupProgress} from '@/app/api/setup/types';
 import {SetupStep} from '@/components/setup/setup-context';
+import {countRealUsers} from '@/lib/services/core/system-user/service';
+import {isSetupCompleted} from '@/lib/services/core/setup-completion';
 
 /**
  * @method GET
@@ -11,15 +13,7 @@ import {SetupStep} from '@/components/setup/setup-context';
 export async function GET() {
     try {
         // Check database state to determine progress
-        const userCount = await db.user.count({
-            where: {
-                email: {
-                    not: {
-                        endsWith: '@changerawr.sys'
-                    }
-                }
-            }
-        });
+        const userCount = await countRealUsers();
         const systemConfig = await db.systemConfig.findFirst();
         const oauthProviders = await db.oAuthProvider.count();
         const invitationCount = await db.invitationLink.count();
@@ -32,13 +26,13 @@ export async function GET() {
         });
 
         const progress: SetupProgress = {
-            currentStep: 'welcome', // Always start with welcome
+            currentStep: 'theme', // Always start by picking a theme
             completedSteps: [],
             adminCreated: userCount > 0,
             settingsConfigured: !!systemConfig,
             oauthConfigured: oauthProviders > 0,
             teamInvitesSent: invitationCount > 0,
-            isComplete: userCount > 0 && !!systemConfig
+            isComplete: false
         };
 
         // ENFORCE PROPER STEP ORDER - each step requires previous steps
@@ -68,24 +62,28 @@ export async function GET() {
 
         // Determine current step based on completed steps
         if (progress.completedSteps.length === 0) {
-            progress.currentStep = 'welcome';
-            console.log('🎬 Setup API: Starting with welcome (no steps completed)');
+            progress.currentStep = 'theme';
+            console.log('🎬 Setup API: Starting with theme (no steps completed)');
         } else {
             const lastCompleted = progress.completedSteps[progress.completedSteps.length - 1];
-            const stepOrder: SetupStep[] = ['welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
+            const stepOrder: SetupStep[] = ['theme', 'welcome', 'admin', 'settings', 'oauth', 'team', 'complete'];
             const nextStepIndex = stepOrder.indexOf(lastCompleted as SetupStep) + 1;
             progress.currentStep = stepOrder[nextStepIndex] || 'complete';
             console.log(`🔄 Setup API: Last completed: ${lastCompleted}, next step: ${progress.currentStep}`);
         }
 
-        // Mark as complete only when all required steps are done
-        if (progress.completedSteps.includes('admin') && progress.completedSteps.includes('settings')) {
-            if (progress.completedSteps.includes('team') || progress.completedSteps.includes('oauth')) {
-                progress.currentStep = 'complete';
+        // Mark as complete only once the wizard's own completion step has
+        // actually run — not once admin+settings+(oauth or team) merely
+        // *could* be inferred from DB rows, since oauth/team are skippable
+        // and skipping never creates a row, which would otherwise leave
+        // isComplete permanently false even after the admin finished the wizard.
+        if (await isSetupCompleted()) {
+            progress.currentStep = 'complete';
+            if (!progress.completedSteps.includes('complete')) {
                 progress.completedSteps.push('complete');
-                progress.isComplete = true;
-                console.log('🎉 Setup API: Setup is complete!');
             }
+            progress.isComplete = true;
+            console.log('🎉 Setup API: Setup is complete!');
         }
 
         console.log('📊 Setup API: Final progress:', progress);
