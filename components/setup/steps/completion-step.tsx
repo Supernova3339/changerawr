@@ -27,6 +27,15 @@ export function CompletionStep({}: CompletionStepProps) {
         }
     };
 
+    // Mark the wizard as finished server-side. Setup-only endpoints
+    // (settings/oauth/invitations) stay reachable until this fires, since an
+    // admin account already exists well before this point.
+    React.useEffect(() => {
+        fetch('/api/setup/complete', { method: 'POST' }).catch((err) => {
+            console.error('Failed to mark setup as complete:', err);
+        });
+    }, []);
+
     // Trigger confetti on mount
     React.useEffect(() => {
         // Only run in browser

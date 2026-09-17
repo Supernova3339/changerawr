@@ -3,6 +3,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.0.7.4
+
+- **Version 1.0.7.4 -2026-09-16**: :::warning
+  There are no breaking changes in this release.
+  :::
+## Improvements
+
+- **Redesigned parts of setup wizard** - Added theme selector plus redesigned some parts to be an overall smoother experience
+
+## Bug Fixes
+
+- **Setup Fixes** - Fixed an issue preventing setup from being incompletable
+- **Deployment Fixes** - Fixed an issue with version not being pinned to 6.7 of Prisma + added prisma.config.ts to assist with fixing unidentified schema issues on some older CPUs.
+
 ## v1.0.7.3
 
 - **Version 1.0.7.3 -2026-08-02**: :::warning

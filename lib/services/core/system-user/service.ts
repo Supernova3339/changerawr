@@ -58,3 +58,18 @@ export async function ensureSystemUser(): Promise<string> {
 export function isSystemUser(userId: string): boolean {
     return userId === SYSTEM_USER_ID;
 }
+
+/**
+ * Count real (non-system) users. Used by setup routes to determine
+ * whether an admin has actually been created, since the system user
+ * always exists and must not count towards that.
+ */
+export async function countRealUsers(): Promise<number> {
+    return db.user.count({
+        where: {
+            id: {
+                not: SYSTEM_USER_ID
+            }
+        }
+    });
+}

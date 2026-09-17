@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { isSetupCompleted } from '@/lib/services/core/setup-completion'
 
 /**
  * This is a special API route that only handles setup status check
@@ -20,11 +20,10 @@ export async function GET(request: Request) {
         // Add cache headers to prevent frequent checks
         headers.set('Cache-Control', 'max-age=5');
 
-        // Check if any user exists
-        const userCount = await db.user.count();
+        const isComplete = await isSetupCompleted();
 
         return NextResponse.json(
-            { isComplete: userCount > 0 },
+            { isComplete },
             { headers, status: 200 }
         );
     } catch (error) {

@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth/password'
 import { z } from 'zod'
 import { checkRateLimit } from '@/lib/utils/rate-limit'
+import { checkPasswordBreach, passwordBreachErrorPayload } from '@/lib/services/auth/password-breach'
 
 const registerSchema = z.object({
     token: z.string(),
@@ -40,6 +41,12 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json()
         const { token, name, password } = registerSchema.parse(body)
+
+        // Reject known-compromised passwords when creating the account
+        const breach = await checkPasswordBreach(password)
+        if (breach.isBreached) {
+            return NextResponse.json(passwordBreachErrorPayload(breach.breachCount), { status: 422 })
+        }
 
         // Start a transaction
         return await db.$transaction(async (tx) => {
@@ -115,7 +122,7 @@ export async function POST(request: NextRequest) {
 
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: error.errors },
+                { error: error.errors[0]?.message || 'Invalid input' },
                 { status: 400 }
             )
         }

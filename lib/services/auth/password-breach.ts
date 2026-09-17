@@ -12,6 +12,15 @@ interface PasswordBreachResult {
  * @returns Promise with breach status and count
  */
 export async function checkPasswordBreach(password: string): Promise<PasswordBreachResult> {
+    // In local development, don't hit the real HIBP API or block on it —
+    // seed.ts and manual testing both use throwaway passwords like
+    // "password123" that are guaranteed to show up as breached, which would
+    // otherwise block every local admin/seed/register flow. Never skip this
+    // in production or any other NODE_ENV.
+    if (process.env.NODE_ENV === 'development') {
+        return {isBreached: false, breachCount: 0};
+    }
+
     try {
         // Hash the password with SHA-1
         const sha1Hash = crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
@@ -20,13 +29,23 @@ export async function checkPasswordBreach(password: string): Promise<PasswordBre
         const hashPrefix = sha1Hash.substring(0, 5);
         const hashSuffix = sha1Hash.substring(5);
 
-        // Query HaveIBeenPwned API
-        const response = await fetch(`https://api.pwnedpasswords.com/range/${hashPrefix}`, {
-            method: 'GET',
-            headers: {
-                'User-Agent': 'Changerawr-App',
-            },
-        });
+        // Don't let a slow/unresponsive HIBP API stall account creation —
+        // fail open (treat as not breached) after a short timeout instead.
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+
+        let response: Response;
+        try {
+            response = await fetch(`https://api.pwnedpasswords.com/range/${hashPrefix}`, {
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'Changerawr-App',
+                },
+                signal: controller.signal,
+            });
+        } finally {
+            clearTimeout(timeout);
+        }
 
         if (!response.ok) {
             // If their API is down, don't block login but log the error
@@ -40,7 +59,7 @@ export async function checkPasswordBreach(password: string): Promise<PasswordBre
         const lines = responseText.split('\n');
         for (const line of lines) {
             const [suffix, count] = line.trim().split(':');
-            if (suffix === hashSuffix) {
+            if (suffix.toUpperCase() === hashSuffix) {
                 return {
                     isBreached: true,
                     breachCount: parseInt(count, 10)
@@ -52,8 +71,21 @@ export async function checkPasswordBreach(password: string): Promise<PasswordBre
         return {isBreached: false, breachCount: 0};
 
     } catch (error) {
-        // If anything fails, don't block login but log the error
+        // Network error, timeout/abort, etc. — don't block login but log it
         console.error('Error checking password breach:', error);
         return {isBreached: false, breachCount: 0};
     }
+}
+
+/**
+ * Standard error payload for rejecting a breached password at creation/change time.
+ * Unlike login (which offers a bypass for existing accounts), a brand-new or
+ * changed password has no reason to be accepted if it's already known-compromised.
+ */
+export function passwordBreachErrorPayload(breachCount: number) {
+    return {
+        error: 'password_breached',
+        message: `This password has appeared in ${breachCount.toLocaleString()} known data breach${breachCount === 1 ? '' : 'es'}. Please choose a different password.`,
+        breachCount,
+    };
 }

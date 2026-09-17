@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, Lock, RefreshCw } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, Lock, RefreshCw, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
 import confetti from 'canvas-confetti'
 import {
@@ -105,6 +105,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
     const [userEmail, setUserEmail] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
+    const [breachWarning, setBreachWarning] = useState<string | null>(null);
     const wrapperRef = React.useRef<HTMLDivElement>(null);
 
     const router = useRouter();
@@ -149,6 +150,11 @@ export default function ResetPasswordForm({ token }: { token: string }) {
         setPasswordStrength(Math.min(3, Math.floor(strength / 2)));
     }, [password]);
 
+    // Clear a stale breach warning once the user changes the password
+    useEffect(() => {
+        setBreachWarning(null);
+    }, [password]);
+
     // Scroll to top when success view is shown
     useEffect(() => {
         if (isSuccess && wrapperRef.current) {
@@ -185,6 +191,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
     }, [token]);
 
     const onSubmit = async (data: ResetPasswordForm) => {
+        setBreachWarning(null);
         try {
             const response = await fetch(`/api/auth/reset-password/${token}`, {
                 method: 'POST',
@@ -198,7 +205,11 @@ export default function ResetPasswordForm({ token }: { token: string }) {
             const responseData = await response.json();
 
             if (!response.ok) {
-                throw new Error(responseData.error || 'Failed to reset password');
+                if (responseData.error === 'password_breached') {
+                    setBreachWarning(responseData.message);
+                    return;
+                }
+                throw new Error(responseData.message || responseData.error || 'Failed to reset password');
             }
 
             setIsSuccess(true);
@@ -445,6 +456,21 @@ export default function ResetPasswordForm({ token }: { token: string }) {
                                                         <span className="inline-block">⚠️</span>
                                                         {errors.password.message}
                                                     </motion.p>
+                                                )}
+                                            </AnimatePresence>
+
+                                            <AnimatePresence>
+                                                {breachWarning && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                    >
+                                                        <Alert variant="destructive" className="mt-2">
+                                                            <ShieldAlert className="h-4 w-4" />
+                                                            <AlertDescription>{breachWarning}</AlertDescription>
+                                                        </Alert>
+                                                    </motion.div>
                                                 )}
                                             </AnimatePresence>
                                         </motion.div>

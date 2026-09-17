@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server'
 import {z} from 'zod'
 import {db} from '@/lib/db'
+import {isSetupCompleted} from '@/lib/services/core/setup-completion'
 
 /**
  * Schema for validating system settings request body.
@@ -136,11 +137,8 @@ const settingsSchema = z.object({
  */
 export async function POST(request: Request) {
     try {
-        // Block access once setup is complete (admin user exists)
-        const userCount = await db.user.count({
-            where: { email: { not: { endsWith: '@changerawr.sys' } } }
-        })
-        if (userCount > 0) {
+        // Block access once the wizard has actually been finished
+        if (await isSetupCompleted()) {
             return NextResponse.json(
                 { error: 'Setup already completed. Use the admin panel to manage system settings.' },
                 { status: 403 }

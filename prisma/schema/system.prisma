@@ -9,7 +9,7 @@ model ApiKey {
   createdAt   DateTime  @default(now())
   expiresAt   DateTime?
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectId   String? // null = global access, set = project-specific
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   permissions String[] // Array of permitted actions
@@ -87,6 +87,13 @@ model SystemConfig {
   // Changelog Tagger service (external ML-based tag classifier)
   changelogTaggerUrl            String? // e.g. http://localhost:31672
   changelogTaggerApiKey         String? // Optional bearer token
+  // Set once the setup wizard's completion step is reached. This is the only
+  // reliable "setup is fully done" signal: unlike checking whether an admin
+  // user exists, every step after admin creation runs *while* an admin
+  // already exists, so per-step setup endpoints (settings/oauth/invitations)
+  // must gate on this instead of user count, or they 403 themselves out
+  // during normal use.
+  setupCompletedAt              DateTime?
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
 }

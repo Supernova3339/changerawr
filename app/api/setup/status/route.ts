@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { countRealUsers } from "@/lib/services/core/system-user/service"
+import { isSetupCompleted } from "@/lib/services/core/setup-completion"
 import { db } from "@/lib/db"
 
 /**
@@ -30,15 +32,7 @@ export async function GET() {
         responseHeaders.set('Cache-Control', 'max-age=5');
 
         // Check if any *non-system* user exists
-        const userCount = await db.user.count({
-            where: {
-                email: {
-                    not: {
-                        endsWith: '@changerawr.sys'
-                    }
-                }
-            }
-        });
+        const userCount = await countRealUsers();
 
         // Check if system configuration exists
         const systemConfig = await db.systemConfig.findFirst();
@@ -46,8 +40,10 @@ export async function GET() {
         // Check if any OAuth providers are configured
         const oauthProviders = await db.oAuthProvider.count();
 
-        // Determine if setup is complete (minimum requirements)
-        const isComplete = userCount > 0 && !!systemConfig;
+        // Determine if setup is complete — must be the wizard's own completion
+        // marker, not "admin + settings exist," since the oauth/team steps
+        // still need to be reachable after settings is configured.
+        const isComplete = await isSetupCompleted();
 
         return NextResponse.json({
             isComplete,

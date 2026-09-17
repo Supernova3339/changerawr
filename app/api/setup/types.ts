@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { setupProgressSchema } from './setupProgressSchema';
 
 export const setupSteps = [
-    'welcome',  // Added welcome step
+    'theme',
+    'welcome',
     'admin',
     'settings',
     'oauth',

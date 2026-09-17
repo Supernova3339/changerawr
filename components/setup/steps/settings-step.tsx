@@ -7,12 +7,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { SetupStep } from '@/components/setup/setup-step';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { useSetup } from '@/components/setup/setup-context';
 import { toast } from '@/hooks/use-toast';
-import { Settings, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { getTimezonesByRegion } from '@/lib/constants/timezones';
 
@@ -21,12 +18,13 @@ interface SettingsStepProps {
     onBack: () => void;
 }
 
+// Only the timezone matters at install time (it affects date-based version
+// templates and scheduling from the first entry onward). Everything else
+// SystemConfig exposes (changelog limits, approval workflow, analytics,
+// notifications, invitation expiry, etc.) already has sane defaults and is
+// fully editable later in Admin -> System. Theme lives on the account
+// itself and is picked in the very first wizard step instead.
 const settingsSchema = z.object({
-    defaultInvitationExpiry: z.number().min(1).max(30).default(7),
-    requireApprovalForChangelogs: z.boolean().default(true),
-    maxChangelogEntriesPerProject: z.number().min(10).max(10000).default(100),
-    enableAnalytics: z.boolean().default(true),
-    enableNotifications: z.boolean().default(true),
     timezone: z.string().min(1).max(100).default('UTC'),
 });
 
@@ -38,34 +36,17 @@ export function SettingsStep({ onNext, onBack }: SettingsStepProps) {
     const isCompleted = isStepCompleted('settings');
 
     const {
-        register,
         handleSubmit,
         setValue,
         watch,
-        formState: { errors }
     } = useForm<SettingsFormValues>({
         resolver: zodResolver(settingsSchema),
         defaultValues: {
-            defaultInvitationExpiry: 7,
-            requireApprovalForChangelogs: true,
-            maxChangelogEntriesPerProject: 100,
-            enableAnalytics: true,
-            enableNotifications: true,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         }
     });
 
-    // For the switches we need to watch the values
-    const requireApprovalForChangelogs = watch('requireApprovalForChangelogs');
-    const enableAnalytics = watch('enableAnalytics');
-    const enableNotifications = watch('enableNotifications');
-
-    const onSubmit = async (data: SettingsFormValues) => {
-        if (isCompleted) {
-            onNext();
-            return;
-        }
-
+    const saveSettings = async (data: SettingsFormValues) => {
         setIsSubmitting(true);
         try {
             const response = await fetch('/api/setup/settings', {
@@ -76,7 +57,7 @@ export function SettingsStep({ onNext, onBack }: SettingsStepProps) {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to save system settings');
+                throw new Error(errorData.message || errorData.error || 'Failed to save system settings');
             }
 
             markStepCompleted('settings');
@@ -96,11 +77,29 @@ export function SettingsStep({ onNext, onBack }: SettingsStepProps) {
         }
     };
 
+    const onSubmit = async (data: SettingsFormValues) => {
+        if (isCompleted) {
+            onNext();
+            return;
+        }
+        await saveSettings(data);
+    };
+
+    const handleSkip = async () => {
+        if (isCompleted) {
+            onNext();
+            return;
+        }
+        // Still creates SystemConfig (required for setup to be considered
+        // complete) but with every default, including the browser-detected timezone.
+        await saveSettings({ timezone: watch('timezone') });
+    };
+
     return (
         <SetupStep
-            title="System Settings"
-            description="Configure your system's default behavior"
-            icon={<Settings className="h-10 w-10 text-primary" />}
+            title="Timezone"
+            description="Used for date-based version templates and scheduling"
+            icon={<Globe className="h-10 w-10 text-primary" />}
             onNext={isCompleted ? onNext : undefined}
             onBack={onBack}
             isLoading={isSubmitting}
@@ -108,38 +107,6 @@ export function SettingsStep({ onNext, onBack }: SettingsStepProps) {
             hideFooter={!isCompleted}
         >
             <form id="settingsForm" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                    <Label htmlFor="defaultInvitationExpiry">
-                        Default Invitation Expiry (days)
-                    </Label>
-                    <Input
-                        id="defaultInvitationExpiry"
-                        type="number"
-                        {...register('defaultInvitationExpiry', { valueAsNumber: true })}
-                    />
-                    {errors.defaultInvitationExpiry && (
-                        <p className="text-sm text-destructive">
-                            {errors.defaultInvitationExpiry.message}
-                        </p>
-                    )}
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="maxChangelogEntriesPerProject">
-                        Max Changelog Entries per Project
-                    </Label>
-                    <Input
-                        id="maxChangelogEntriesPerProject"
-                        type="number"
-                        {...register('maxChangelogEntriesPerProject', { valueAsNumber: true })}
-                    />
-                    {errors.maxChangelogEntriesPerProject && (
-                        <p className="text-sm text-destructive">
-                            {errors.maxChangelogEntriesPerProject.message}
-                        </p>
-                    )}
-                </div>
-
                 <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-muted-foreground" />
@@ -160,61 +127,28 @@ export function SettingsStep({ onNext, onBack }: SettingsStepProps) {
                         }))}
                     />
                     <p className="text-sm text-muted-foreground">
-                        Used for date-based version templates and scheduling
+                        Everything else (changelog limits, approval workflow, analytics,
+                        notifications, invitation expiry) has a sensible default and can be
+                        changed any time in Admin → System.
                     </p>
                 </div>
 
-                <Separator />
-
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>Require Changelog Approval</Label>
-                            <p className="text-sm text-muted-foreground">
-                                Require approval for new changelog entries
-                            </p>
-                        </div>
-                        <Switch
-                            checked={requireApprovalForChangelogs}
-                            onCheckedChange={(checked) => setValue('requireApprovalForChangelogs', checked)}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>Enable Analytics</Label>
-                            <p className="text-sm text-muted-foreground">
-                                Collect usage statistics and analytics
-                            </p>
-                        </div>
-                        <Switch
-                            checked={enableAnalytics}
-                            onCheckedChange={(checked) => setValue('enableAnalytics', checked)}
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label>Enable Notifications</Label>
-                            <p className="text-sm text-muted-foreground">
-                                Send notifications for important events
-                            </p>
-                        </div>
-                        <Switch
-                            checked={enableNotifications}
-                            onCheckedChange={(checked) => setValue('enableNotifications', checked)}
-                        />
-                    </div>
-                </div>
-
                 {!isCompleted && (
-                    <div className="pt-4">
+                    <div className="pt-4 space-y-2">
                         <button
                             type="submit"
-                            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 px-4 rounded-md font-medium"
+                            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 px-4 rounded-md font-medium disabled:opacity-50"
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? 'Saving Settings...' : 'Save System Settings'}
+                            {isSubmitting ? 'Saving...' : 'Continue'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleSkip}
+                            disabled={isSubmitting}
+                            className="w-full text-sm text-muted-foreground hover:text-foreground py-1 disabled:opacity-50"
+                        >
+                            Skip — use defaults
                         </button>
                     </div>
                 )}

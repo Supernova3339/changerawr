@@ -3,6 +3,9 @@ import {z} from 'zod'
 import {db} from '@/lib/db'
 import {hashPassword} from '@/lib/auth/password'
 import {Role} from '@prisma/client'
+import {countRealUsers} from '@/lib/services/core/system-user/service'
+import {checkPasswordBreach, passwordBreachErrorPayload} from '@/lib/services/auth/password-breach'
+import {checkRateLimit} from '@/lib/utils/rate-limit'
 
 /**
  * Schema for validating admin user request body.
@@ -11,6 +14,10 @@ const adminSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Please enter a valid email'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
+    // Chosen in the wizard's first step, before this account exists —
+    // applied directly to the new user's Settings below instead of needing
+    // a separate write later.
+    theme: z.enum(['light', 'dark']).optional(),
 })
 
 /**
@@ -60,16 +67,18 @@ const adminSchema = z.object({
  */
 export async function POST(request: Request) {
     try {
+        // Rate limit: 10 attempts per hour per IP
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown'
+        const rateLimit = checkRateLimit(`setup-admin:${ip}`, 10, 60 * 60 * 1000)
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                {error: 'Too many attempts. Please try again later.'},
+                {status: 429}
+            )
+        }
+
         // Check if setup is already complete
-        const userCount = await db.user.count({
-            where: {
-                email: {
-                    not: {
-                        endsWith: '@changerawr.sys'
-                    }
-                }
-            }
-        });
+        const userCount = await countRealUsers();
         if (userCount > 0) {
             return NextResponse.json(
                 {error: 'Setup has already been completed'},
@@ -81,6 +90,12 @@ export async function POST(request: Request) {
         const body = await request.json()
         const validatedData = adminSchema.parse(body)
 
+        // Reject known-compromised passwords for the very first account
+        const breach = await checkPasswordBreach(validatedData.password)
+        if (breach.isBreached) {
+            return NextResponse.json(passwordBreachErrorPayload(breach.breachCount), {status: 422})
+        }
+
         // Hash password
         const hashedPassword = await hashPassword(validatedData.password)
 
@@ -91,6 +106,11 @@ export async function POST(request: Request) {
                 email: validatedData.email,
                 password: hashedPassword,
                 role: Role.ADMIN,
+                settings: {
+                    create: {
+                        theme: validatedData.theme ?? 'light',
+                    },
+                },
             },
             select: {
                 id: true,

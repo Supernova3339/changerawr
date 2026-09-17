@@ -11,9 +11,8 @@ export default function SetupLayout({
                                     }: {
     children: React.ReactNode;
 }) {
-    return (
-        <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg">{children}</div>
-        </div>
-    );
+    // No wrapper styling here — page.tsx owns its own background
+    // (SetupBackground) and each step manages its own width, from the
+    // full-bleed theme picker to the standard card steps.
+    return <>{children}</>;
 }
