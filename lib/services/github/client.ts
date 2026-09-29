@@ -136,12 +136,48 @@ export class GitHubError extends Error {
     }
 }
 
+const GITHUB_API_URL = 'https://api.github.com';
+
+/**
+ * Resolve the REST API base URL for a repository URL.
+ * github.com repositories use api.github.com; any other host is treated as a
+ * Gitea/Forgejo instance, whose API lives at <instance>/api/v1.
+ */
+export function resolveApiBaseUrl(repositoryUrl: string): string {
+    let url: URL;
+    try {
+        url = new URL(repositoryUrl);
+    } catch {
+        // owner/repo shorthand or git@github.com:owner/repo
+        return GITHUB_API_URL;
+    }
+
+    if (url.hostname === 'github.com') {
+        return GITHUB_API_URL;
+    }
+
+    // Keep any sub-path the instance is served under (e.g. https://example.com/git/owner/repo)
+    const segments = url.pathname.split('/').filter(Boolean);
+    const prefix = segments.slice(0, -2).join('/');
+    return `${url.origin}${prefix ? `/${prefix}` : ''}/api/v1`;
+}
+
 export class GitHubClient {
     private accessToken: string;
-    private baseUrl = 'https://api.github.com';
+    private baseUrl: string;
+    private isGitHub: boolean;
 
     constructor(config: GitHubConfig) {
         this.accessToken = config.accessToken;
+        this.baseUrl = resolveApiBaseUrl(config.repositoryUrl);
+        this.isGitHub = this.baseUrl === GITHUB_API_URL;
+    }
+
+    /**
+     * Gitea/Forgejo take the page size as `limit` instead of `per_page`
+     */
+    private get pageSizeParam(): string {
+        return this.isGitHub ? 'per_page' : 'limit';
     }
 
     private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -195,6 +231,8 @@ export class GitHubClient {
             /^https:\/\/github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?(?:\/)?$/,
             /^git@github\.com:([^\/]+)\/([^\/]+?)(?:\.git)?$/,
             /^([^\/]+)\/([^\/]+)$/, // Just owner/repo format
+            // Self-hosted Gitea/Forgejo, optionally served under a sub-path
+            /^https?:\/\/(?!(?:www\.)?github\.com\/)[^\/]+\/(?:[^\/]+\/)*([^\/]+)\/([^\/]+?)(?:\.git)?(?:\/)?$/,
         ];
 
         for (const pattern of patterns) {
@@ -271,8 +309,14 @@ export class GitHubClient {
         if (options.until) queryParams.append('until', options.until);
         if (options.sha) queryParams.append('sha', options.sha);
         if (options.path) queryParams.append('path', options.path);
-        queryParams.append('per_page', (options.per_page ?? 30).toString());
+        queryParams.append(this.pageSizeParam, (options.per_page ?? 30).toString());
         if (options.page) queryParams.append('page', options.page.toString());
+        if (!this.isGitHub) {
+            // Gitea/Forgejo compute these per commit by default; getCommit() fetches details when needed
+            queryParams.append('stat', 'false');
+            queryParams.append('verification', 'false');
+            queryParams.append('files', 'false');
+        }
 
         const endpoint = `/repos/${owner}/${repo}/commits${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
 
@@ -378,7 +422,7 @@ export class GitHubClient {
         const { owner, repo } = this.parseRepositoryUrl(repositoryUrl);
 
         const queryParams = new URLSearchParams();
-        if (options.per_page) queryParams.append('per_page', options.per_page.toString());
+        if (options.per_page) queryParams.append(this.pageSizeParam, options.per_page.toString());
         if (options.page) queryParams.append('page', options.page.toString());
 
         const endpoint = `/repos/${owner}/${repo}/tags${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
@@ -396,7 +440,7 @@ export class GitHubClient {
         const { owner, repo } = this.parseRepositoryUrl(repositoryUrl);
 
         const queryParams = new URLSearchParams();
-        if (options.per_page) queryParams.append('per_page', options.per_page.toString());
+        if (options.per_page) queryParams.append(this.pageSizeParam, options.per_page.toString());
         if (options.page) queryParams.append('page', options.page.toString());
 
         const endpoint = `/repos/${owner}/${repo}/releases${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
@@ -417,7 +461,9 @@ export class GitHubClient {
      */
     async getCommit(repositoryUrl: string, sha: string): Promise<GitHubCommit> {
         const { owner, repo } = this.parseRepositoryUrl(repositoryUrl);
-        const commit = await this.makeRequest<GitHubCommitResponse>(`/repos/${owner}/${repo}/commits/${sha}`);
+        // Gitea/Forgejo serve a single commit under /git/commits
+        const commitPath = this.isGitHub ? 'commits' : 'git/commits';
+        const commit = await this.makeRequest<GitHubCommitResponse>(`/repos/${owner}/${repo}/${commitPath}/${sha}`);
         return this.normalizeCommit(commit);
     }
 

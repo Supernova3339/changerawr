@@ -375,7 +375,9 @@ export default function GitHubIntegrationSettings({ projectId, projectName }: { 
                                     onChange={(e) => updateSettings({ repositoryUrl: e.target.value })}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    Enter the full GitHub repository URL (e.g., https://github.com/owner/repo)
+                                    Enter the full GitHub repository URL (e.g., https://github.com/owner/repo).
+                                    Self-hosted Gitea and Forgejo repositories work too: use the repository root URL
+                                    (e.g., https://git.example.com/owner/repo) and an access token with repository read access
                                 </p>
                             </div>
 
