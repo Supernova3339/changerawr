@@ -49,16 +49,16 @@ If you don't know what a changelog is, check out [betterauth](https://www.better
 <!-- GALLERY:START -->
 <table align="center">
   <tr>
+    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_admin_users.png" width="100%" alt="Admin user management" /></td>
+    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_admin_audit-logs.png" width="100%" alt="Admin audit logs" /></td>
+    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_admin_ai-settings.png" width="100%" alt="AI settings" /></td>
+    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_projects_projectId_settings_tags.png" width="100%" alt="Tag management" /></td>
+  </tr>
+  <tr>
     <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_admin_about.png" width="100%" alt="About / system information" /></td>
     <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_projects_projectId_catch-up.png" width="100%" alt="Catch-up view" /></td>
     <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_projects_projectId_import.png" width="100%" alt="Changelog import" /></td>
     <td width="25%"><img src="screenshots/gallery/screenshots_changelog_projectId.png" width="100%" alt="Public changelog page" /></td>
-  </tr>
-  <tr>
-    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard.png" width="100%" alt="Dashboard overview" /></td>
-    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_projects.png" width="100%" alt="Projects list" /></td>
-    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_projects_projectId_changelog.png" width="100%" alt="Changelog view" /></td>
-    <td width="25%"><img src="screenshots/gallery/screenshots_dashboard_projects_projectId_changelog_new.png" width="100%" alt="New changelog entry editor" /></td>
   </tr>
 </table>
 <!-- GALLERY:END -->
