@@ -36,7 +36,7 @@
 
   "dependencies": {
     "@changerawr/markdown": "^2.0.1",
-    "@faker-js/faker": "^9.9.0",
+    "@faker-js/faker": "10.5.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^4.1.3",
