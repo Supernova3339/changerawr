@@ -28,6 +28,14 @@ function createEnvironmentError(missingVars: string[]): EnvironmentValidationErr
 }
 
 function checkRequirements(): void {
+    const skipCheck = process.env.BUILD_PHASE_SKIP_VALIDATION ||
+        process.env.CI_BUILD_MODE ||
+        process.env.DOCKER_BUILD === '1';
+
+    if (skipCheck) {
+        return;
+    }
+
     const required = [
         'NEXT_PUBLIC_APP_URL',
         'DATABASE_URL',
