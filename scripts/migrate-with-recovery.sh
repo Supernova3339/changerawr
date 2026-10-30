@@ -23,11 +23,12 @@ run_migrations() {
 
             # Extract the migration name from the error message
             # P3009 error format typically includes the migration name
-            MIGRATION_NAME=$(echo "$OUTPUT" | grep -oP "migration.*?(?=\s|$)" | head -1 | sed 's/migration //' | tr -d '`' | tr -d "'")
+            # Using POSIX-compliant grep instead of -P flag
+            MIGRATION_NAME=$(echo "$OUTPUT" | grep -o "migration.*" | head -1 | sed 's/migration //' | sed 's/[`'"'"']//g' | awk '{print $1}')
 
             if [ -z "$MIGRATION_NAME" ]; then
-                # Try alternate extraction pattern
-                MIGRATION_NAME=$(echo "$OUTPUT" | grep -oP "\d{8,}_[a-z_]+" | head -1)
+                # Try alternate extraction pattern - look for timestamp_name format
+                MIGRATION_NAME=$(echo "$OUTPUT" | grep -E -o "[0-9]{8,}_[a-z_]+" | head -1)
             fi
 
             if [ -n "$MIGRATION_NAME" ]; then
