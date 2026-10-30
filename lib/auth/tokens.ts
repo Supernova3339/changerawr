@@ -3,7 +3,11 @@ import {db} from '../db';
 import {nanoid} from 'nanoid';
 import {User} from '@prisma/client';
 
-if (!process.env.JWT_ACCESS_SECRET) {
+const skipCheck = process.env.BUILD_PHASE_SKIP_VALIDATION ||
+    process.env.CI_BUILD_MODE ||
+    process.env.DOCKER_BUILD === '1';
+
+if (!skipCheck && !process.env.JWT_ACCESS_SECRET) {
     throw new Error('JWT_ACCESS_SECRET environment variable is required');
 }
 
