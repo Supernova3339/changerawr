@@ -4,7 +4,7 @@ import {
     parseConventionalCommit,
     shouldIncludeCommit
 } from './client';
-import { createSectonClient } from '@/lib/utils/ai/secton';
+import { createHalesisClient } from '@/lib/utils/ai/halesis';
 
 export interface FileChange {
     filename: string;
@@ -278,7 +278,7 @@ export class GitHubChangelogGenerator {
             throw new Error('AI API key is required for AI analysis');
         }
 
-        const aiClient = createSectonClient({
+        const aiClient = createHalesisClient({
             apiKey: options.aiApiKey,
             defaultModel: options.aiModel ?? 'copilot-zero'
         });
@@ -315,7 +315,7 @@ export class GitHubChangelogGenerator {
      */
     private async analyzeCommitWithAI(
         commit: CommitData,
-        aiClient: ReturnType<typeof createSectonClient>
+        aiClient: ReturnType<typeof createHalesisClient>
     ): Promise<ChangelogEntry | null> {
         // Build a simple, structured prompt without JSON
         const prompt = this.buildStructuredPrompt(commit);

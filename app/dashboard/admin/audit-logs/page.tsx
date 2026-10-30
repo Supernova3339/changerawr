@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { format, parseISO, subDays } from 'date-fns'
+import type { DateRange } from 'react-day-picker'
 import { motion } from 'framer-motion'
 import {
     Card,
@@ -103,10 +104,7 @@ interface AuditAction {
 interface FilterState {
     search: string
     action: string
-    dateRange: {
-        from: Date | null
-        to: Date | null
-    }
+    dateRange: DateRange
     userId?: string
     targetId?: string
 }
@@ -674,17 +672,11 @@ export default function AuditLogsPage() {
                                         </div>
                                         <Calendar
                                             mode="range"
-                                            selected={{
-                                                from: filters.dateRange.from || undefined,
-                                                to: filters.dateRange.to || undefined
-                                            }}
+                                            selected={filters.dateRange}
                                             onSelect={(range) => {
                                                 setFilters(prev => ({
                                                     ...prev,
-                                                    dateRange: {
-                                                        from: range?.from || null,
-                                                        to: range?.to || null
-                                                    }
+                                                    dateRange: range || {}
                                                 }));
                                             }}
                                             className="border rounded-md p-3"

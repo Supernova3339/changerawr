@@ -36,7 +36,7 @@ interface TrainingStatus {
     round: number
 }
 
-type ActivePanel = 'secton' | 'tagger'
+type ActivePanel = 'halesis' | 'tagger'
 
 const MASKED = '••••••••••••••••'
 const isMasked = (v: string) => v.includes('•')
@@ -70,17 +70,16 @@ export default function AISettingsPage() {
     const { toast } = useToast()
     const queryClient = useQueryClient()
 
-    const [panel, setPanel]                   = useState<ActivePanel>('secton')
-    const [enabled, setEnabled]               = useState(false)
-    const [sectonKey, setSectonKey]           = useState('')
-    const [sectonKeyDirty, setSectonKeyDirty] = useState(false)
-    const [taggerUrl, setTaggerUrl]           = useState('')
-    const [taggerKey, setTaggerKey]           = useState('')
-    const [taggerKeyDirty, setTaggerKeyDirty] = useState(false)
-    const [promoCopied, setPromoCopied]       = useState(false)
-    const [sectonResult, setSectonResult]     = useState<{ valid: boolean; message: string } | null>(null)
-    const [taggerResult, setTaggerResult]     = useState<{ success: boolean; message: string } | null>(null)
-    const [testingSecton, setTestingSecton]   = useState(false)
+    const [panel, setPanel]                     = useState<ActivePanel>('halesis')
+    const [enabled, setEnabled]                 = useState(false)
+    const [halesisKey, setHalesisKey]           = useState('')
+    const [halesisKeyDirty, setHalesisKeyDirty] = useState(false)
+    const [taggerUrl, setTaggerUrl]             = useState('')
+    const [taggerKey, setTaggerKey]             = useState('')
+    const [taggerKeyDirty, setTaggerKeyDirty]   = useState(false)
+    const [halesisResult, setHalesisResult]     = useState<{ valid: boolean; message: string } | null>(null)
+    const [taggerResult, setTaggerResult]       = useState<{ success: boolean; message: string } | null>(null)
+    const [testingHalesis, setTestingHalesis]   = useState(false)
     const [testingTagger, setTestingTagger]   = useState(false)
     const [trainingStatus, setTrainingStatus] = useState<TrainingStatus | null>(null)
     const [connectionState, setConnectionState] = useState<'connecting' | 'open' | 'error'>('connecting')
@@ -98,7 +97,7 @@ export default function AISettingsPage() {
     useEffect(() => {
         if (!settings) return
         setEnabled(settings.enableAIAssistant)
-        setSectonKey(settings.aiApiKey ? MASKED : '')
+        setHalesisKey(settings.aiApiKey ? MASKED : '')
         setTaggerUrl(settings.changelogTaggerUrl ?? '')
         setTaggerKey(settings.changelogTaggerApiKey ? MASKED : '')
     }, [settings])
@@ -139,7 +138,7 @@ export default function AISettingsPage() {
         },
         onSuccess: () => {
             toast({ title: 'Saved' })
-            setSectonKeyDirty(false)
+            setHalesisKeyDirty(false)
             setTaggerKeyDirty(false)
             queryClient.invalidateQueries({ queryKey: ['ai-settings'] })
         },
@@ -149,10 +148,10 @@ export default function AISettingsPage() {
     const handleSave = () => {
         const body: Record<string, unknown> = {
             enableAIAssistant: enabled,
-            aiApiProvider: 'secton',
+            aiApiProvider: 'halesis',
             changelogTaggerUrl: taggerUrl || null,
         }
-        if (sectonKeyDirty && !isMasked(sectonKey)) body.aiApiKey = sectonKey || null
+        if (halesisKeyDirty && !isMasked(halesisKey)) body.aiApiKey = halesisKey || null
         if (taggerKeyDirty && !isMasked(taggerKey)) body.changelogTaggerApiKey = taggerKey || null
         save(body)
     }
@@ -160,26 +159,26 @@ export default function AISettingsPage() {
     const handleCancel = () => {
         if (!settings) return
         setEnabled(settings.enableAIAssistant)
-        setSectonKey(settings.aiApiKey ? MASKED : '')
-        setSectonKeyDirty(false)
+        setHalesisKey(settings.aiApiKey ? MASKED : '')
+        setHalesisKeyDirty(false)
         setTaggerUrl(settings.changelogTaggerUrl ?? '')
         setTaggerKey(settings.changelogTaggerApiKey ? MASKED : '')
         setTaggerKeyDirty(false)
-        setSectonResult(null)
+        setHalesisResult(null)
         setTaggerResult(null)
     }
 
-    const validateSecton = async () => {
-        if (!sectonKey || isMasked(sectonKey)) { toast({ title: 'Enter a new key first', variant: 'destructive' }); return }
-        setTestingSecton(true); setSectonResult(null)
+    const validateHalesis = async () => {
+        if (!halesisKey || isMasked(halesisKey)) { toast({ title: 'Enter a new key first', variant: 'destructive' }); return }
+        setTestingHalesis(true); setHalesisResult(null)
         try {
             const r = await fetch('/api/admin/ai-settings/test-key', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ apiKey: sectonKey, provider: 'secton' }),
+                body: JSON.stringify({ apiKey: halesisKey, provider: 'halesis' }),
             })
-            setSectonResult(await r.json())
-        } catch { setSectonResult({ valid: false, message: 'Request failed' }) }
-        finally { setTestingSecton(false) }
+            setHalesisResult(await r.json())
+        } catch { setHalesisResult({ valid: false, message: 'Request failed' }) }
+        finally { setTestingHalesis(false) }
     }
 
     const testTagger = async () => {
@@ -231,7 +230,7 @@ export default function AISettingsPage() {
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
                         Services
                     </p>
-                    <NavItem icon={Cloud} label="Secton" configured={!!settings?.aiApiKey} active={panel === 'secton'} onClick={() => setPanel('secton')} />
+                    <NavItem icon={Cloud} label="Halesis" configured={!!settings?.aiApiKey} active={panel === 'halesis'} onClick={() => setPanel('halesis')} />
                     <NavItem icon={Tag}   label="Changelog Tagger" configured={!!taggerUrl || !!settings?.changelogTaggerAutoDetected} training={trainingStatus?.status === 'running'} active={panel === 'tagger'} onClick={() => setPanel('tagger')} />
                 </div>
 
@@ -240,12 +239,12 @@ export default function AISettingsPage() {
                     <div className="flex-1 overflow-y-auto p-8">
                         <AnimatePresence mode="wait" initial={false}>
 
-                            {/* Secton */}
-                            {panel === 'secton' && (
-                                <motion.div key="secton" initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }} transition={{ duration: 0.12 }} className="space-y-6 w-full">
+                            {/* Halesis */}
+                            {panel === 'halesis' && (
+                                <motion.div key="halesis" initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -6 }} transition={{ duration: 0.12 }} className="space-y-6 w-full">
 
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-semibold">Secton</h2>
+                                        <h2 className="text-lg font-semibold">Halesis</h2>
                                         {settings?.aiApiKey
                                             ? <Badge variant="secondary" className="gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-green-500" />Configured</Badge>
                                             : <Badge variant="outline" className="text-muted-foreground">Not configured</Badge>}
@@ -253,56 +252,30 @@ export default function AISettingsPage() {
 
                                     <Separator />
 
-                                    {/* Promo */}
-                                    <div className="rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 p-4">
-                                        <div className="flex items-center justify-between gap-6">
-                                            <div>
-                                                <div className="flex items-center gap-2 font-medium">
-                                                    <Badge variant="default" className="text-xs">Exclusive</Badge>
-                                                    30% off your first purchase
-                                                </div>
-                                                <p className="text-sm text-muted-foreground mt-0.5">Use code CHANGERAWR at checkout on platform.secton.org</p>
-                                            </div>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-1.5">
-                                                    <code className="font-mono font-semibold text-sm">CHANGERAWR</code>
-                                                    <button onClick={() => { navigator.clipboard.writeText('CHANGERAWR'); setPromoCopied(true); setTimeout(() => setPromoCopied(false), 2000) }} className="text-muted-foreground hover:text-foreground transition-colors">
-                                                        {promoCopied ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                                                    </button>
-                                                </div>
-                                                <Button variant="default" size="sm" asChild>
-                                                    <a href="https://platform.secton.org/settings/organization/billing" target="_blank" rel="noreferrer">
-                                                        Get credits <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
-                                                    </a>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div className="space-y-2">
                                         <Label>API key</Label>
                                         <div className="flex gap-2 w-full">
                                             <div className="relative flex-1">
-                                                <Input type="password" placeholder={settings?.aiApiKey ? MASKED : 'sk_…'} value={sectonKey}
-                                                    onChange={e => { setSectonKey(e.target.value); setSectonKeyDirty(true); setSectonResult(null) }}
+                                                <Input type="password" placeholder={settings?.aiApiKey ? MASKED : 'sk_…'} value={halesisKey}
+                                                    onChange={e => { setHalesisKey(e.target.value); setHalesisKeyDirty(true); setHalesisResult(null) }}
                                                     autoComplete="off" className="pr-10" />
                                                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                                             </div>
-                                            <Button variant="outline" onClick={validateSecton} disabled={testingSecton || !sectonKey || isMasked(sectonKey)}>
-                                                {testingSecton ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Validate'}
+                                            <Button variant="outline" onClick={validateHalesis} disabled={testingHalesis || !halesisKey || isMasked(halesisKey)}>
+                                                {testingHalesis ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Validate'}
                                             </Button>
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            Keys start with <code className="text-xs bg-muted px-1 py-0.5 rounded">sk_</code> —{' '}
-                                            <a href="https://platform.secton.org/settings/organization/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline">generate one</a>
+                                            Keys start with <code className="text-xs bg-muted px-1 py-0.5 rounded">sk-</code> —{' '}
+                                            <a href="https://platform.halesis.com/settings/organization/api-keys" target="_blank" rel="noreferrer" className="text-primary hover:underline">generate one</a>
                                         </p>
                                     </div>
 
                                     <AnimatePresence>
-                                        {sectonResult && (
+                                        {halesisResult && (
                                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                                                <Alert variant={sectonResult.valid ? 'success' : 'destructive'}>
-                                                    <AlertDescription>{sectonResult.message}</AlertDescription>
+                                                <Alert variant={halesisResult.valid ? 'success' : 'destructive'}>
+                                                    <AlertDescription>{halesisResult.message}</AlertDescription>
                                                 </Alert>
                                             </motion.div>
                                         )}

@@ -530,14 +530,17 @@ export default function SubscribersPage() {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant={
-                                                        subscriber.subscriptionType === 'ALL_UPDATES' ? 'default' :
-                                                            subscriber.subscriptionType === 'MAJOR_ONLY' ? 'warning' : 'secondary'
-                                                    }>
-                                                        {subscriber.subscriptionType === 'ALL_UPDATES' && <BellIcon className="h-3 w-3 mr-1" />}
-                                                        {subscriber.subscriptionType === 'MAJOR_ONLY' && <BellOffIcon className="h-3 w-3 mr-1" />}
-                                                        {subscriber.subscriptionType === 'DIGEST_ONLY' && <CalendarIcon className="h-3 w-3 mr-1" />}
-                                                        {getSubscriptionTypeLabel(subscriber.subscriptionType)}
+                                                    <Badge
+                                                        variant={
+                                                            subscriber.subscriptionType === 'ALL_UPDATES' ? 'default' :
+                                                                subscriber.subscriptionType === 'MAJOR_ONLY' ? 'warning' : 'secondary'
+                                                        }
+                                                        className="whitespace-nowrap inline-flex items-center"
+                                                    >
+                                                        {subscriber.subscriptionType === 'ALL_UPDATES' && <BellIcon className="h-3 w-3 mr-1 flex-shrink-0" />}
+                                                        {subscriber.subscriptionType === 'MAJOR_ONLY' && <BellOffIcon className="h-3 w-3 mr-1 flex-shrink-0" />}
+                                                        {subscriber.subscriptionType === 'DIGEST_ONLY' && <CalendarIcon className="h-3 w-3 mr-1 flex-shrink-0" />}
+                                                        <span className="truncate">{getSubscriptionTypeLabel(subscriber.subscriptionType)}</span>
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>{formatDate(subscriber.createdAt)}</TableCell>

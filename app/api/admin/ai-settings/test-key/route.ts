@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { validateAuthAndGetUser } from '@/lib/utils/changelog'
-import { createAIClient } from '@/lib/utils/ai/secton'
+import { createAIClient } from '@/lib/utils/ai/halesis'
 
 /**
  * POST /api/admin/ai-settings/test-key
  * Validates an API key by hitting the /models endpoint.
- * Works for both Secton and any OpenAI-compatible endpoint.
+ * Works for both Halesis and any OpenAI-compatible endpoint.
  * Body: { apiKey: string, provider?: string, apiUrl?: string }
  */
 export async function POST(request: Request) {
@@ -15,16 +15,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
         }
 
-        const { apiKey, provider = 'secton', apiUrl } = await request.json()
+        const { apiKey, provider = 'halesis', apiUrl } = await request.json()
 
         if (!apiKey || typeof apiKey !== 'string') {
             return NextResponse.json({ valid: false, message: 'API key is required' }, { status: 400 })
         }
 
-        if (provider === 'secton' && !apiKey.startsWith('sk_')) {
+        if (provider === 'halesis' && !apiKey.startsWith('sk-')) {
             return NextResponse.json({
                 valid: false,
-                message: 'Invalid format — Secton API keys start with "sk_".',
+                message: 'Invalid format — Halesis API keys start with "sk-".',
             }, { status: 400 })
         }
 

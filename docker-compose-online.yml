@@ -27,6 +27,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/changerawr?schema=public"
+      # ⚠️  SECURITY WARNING: CHANGE THIS SECRET IMMEDIATELY!
+      # Generate a secure secret with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+      # Using the default value allows attackers to forge authentication tokens!
       JWT_ACCESS_SECRET: "your_jwt_secret_key_here_change_me"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
       GITHUB_ENCRYPTION_KEY: "abcdef1234567890abcdef1234567890"

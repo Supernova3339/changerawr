@@ -5,7 +5,7 @@
 
 export const appInfo = {
     name: 'Changerawr',
-    version: '1.0.7.4',
+    version: '1.0.7.5',
     status: 'Stable',
     environment: process.env.NODE_ENV || 'development',
     license: 'CNC OSL',

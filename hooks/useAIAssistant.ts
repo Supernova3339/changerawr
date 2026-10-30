@@ -33,7 +33,7 @@ export interface UseAIAssistantOptions {
 export default function useAIAssistant({
                                            apiKey,
                                            model = 'copilot-zero',
-                                           baseUrl = 'https://api.secton.org/v1',
+                                           baseUrl = 'https://api.halesis.com/v1',
                                            onGenerated
                                        }: UseAIAssistantOptions = {}) {
     // Panel state

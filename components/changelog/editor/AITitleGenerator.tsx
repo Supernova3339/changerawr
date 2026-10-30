@@ -4,7 +4,7 @@ import { Sparkles, Pencil, Lock, UnlockIcon, Wand2, Lightbulb, Check, X, Palette
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { createSectonClient } from '@/lib/utils/ai/secton';
+import { createHalesisClient } from '@/lib/utils/ai/halesis';
 import confetti from 'canvas-confetti';
 import { createPortal } from 'react-dom';
 
@@ -229,8 +229,8 @@ export default function AITitleGenerator({ content, onSelectTitle, apiKey, initi
         setError(null);
 
         try {
-            // Create a Secton client instance
-            const sectonClient = createSectonClient({
+            // Create a Halesis client instance
+            const halesisClient = createHalesisClient({
                 apiKey,
                 defaultModel: 'copilot-zero',
             });
@@ -243,7 +243,7 @@ export default function AITitleGenerator({ content, onSelectTitle, apiKey, initi
 
             // Generate titles
             const prompt = getTitleGenerationPrompt(processedContent, lockedTitles);
-            const generatedText = await sectonClient.generateText(prompt, {
+            const generatedText = await halesisClient.generateText(prompt, {
                 temperature: 0.8,
                 max_tokens: 200,
             });

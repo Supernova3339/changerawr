@@ -23,7 +23,8 @@ import {
     Settings,
     Shield,
     Sparkles,
-    Users
+    Users,
+    Wrench
 } from 'lucide-react'
 import {cn} from '@/lib/utils'
 import {useMediaQuery} from '@/hooks/use-media-query'
@@ -131,6 +132,12 @@ const NAV_SECTIONS: NavSection[] = [
                 href: "/dashboard/admin/system",
                 label: "System Config",
                 icon: ServerCog,
+                requiredRole: ['ADMIN']
+            },
+            {
+                href: "/dashboard/admin/maintenance",
+                label: "Maintenance",
+                icon: Wrench,
                 requiredRole: ['ADMIN']
             },
             {

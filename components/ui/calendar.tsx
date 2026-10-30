@@ -11,6 +11,7 @@ import {
     labelPrevious,
     useDayPicker,
     type DayPickerProps,
+    type DateRange,
 } from "react-day-picker"
 
 export type CalendarProps = DayPickerProps & {
@@ -489,10 +490,25 @@ function YearGrid({
                             variant="ghost"
                             onClick={() => {
                                 setNavView("days")
+                                // Handle both single date and date range modes
+                                let monthToUse = 0
+
+                                if (selected) {
+                                    // Check if it's a DateRange object (has 'from' property)
+                                    if (typeof selected === 'object' && selected !== null && 'from' in selected) {
+                                        const dateRange = selected as DateRange
+                                        monthToUse = dateRange.from?.getMonth() ?? 0
+                                    }
+                                    // Check if it's a Date object (has getMonth method)
+                                    else if (typeof selected === 'object' && selected !== null && 'getMonth' in selected) {
+                                        monthToUse = (selected as Date).getMonth()
+                                    }
+                                }
+
                                 goToMonth(
                                     new Date(
                                         displayYears.from + i,
-                                        (selected as Date | undefined)?.getMonth() ?? 0
+                                        monthToUse
                                     )
                                 )
                             }}

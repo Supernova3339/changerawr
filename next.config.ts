@@ -14,7 +14,10 @@ const nextConfig: NextConfig = {
         // No remote patterns needed - avatars are proxied through /api/avatar/[hash]
         remotePatterns: [],
     },
-    turbopack: {},
+    turbopack: {
+        // Set the root to the current project directory to avoid warnings about files outside the Git repo
+        root: __dirname,
+    },
     webpack: (config) => {
         // Exclude extensions folder from type checking and compilation
         config.module = config.module || {};

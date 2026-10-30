@@ -3,11 +3,11 @@ import { validateAuthAndGetUser } from '@/lib/utils/changelog';
 import { db } from '@/lib/db';
 import { resolveTaggerConfig } from '@/lib/services/ai/tagger-detect';
 
-const SECTON_BASE = 'https://api.secton.org/v1';
+const HALESIS_BASE = 'https://api.halesis.com/v1';
 
 /**
  * POST /api/ai/suggest-tags
- * Priority: changelog-tagger → Secton/custom AI → 503
+ * Priority: changelog-tagger → Halesis/custom AI → 503
  *
  * Body: { content: string, tags: string[] }
  * When using changelog-tagger, tags may be empty — the tagger falls back to its own 19-tag set.
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No tags provided' }, { status: 400 });
     }
 
-    const baseUrl = config.aiApiUrl ? config.aiApiUrl.replace(/\/$/, '') : SECTON_BASE;
+    const baseUrl = config.aiApiUrl ? config.aiApiUrl.replace(/\/$/, '') : HALESIS_BASE;
     const prompt = `Categorize this changelog with appropriate tags.\nAvailable tags: ${availableTagNames.join(', ')}\n\nReturn only matching tag names (max 3), comma-separated. No explanations.\n\n${content.trim().slice(0, 2000)}`;
 
     const aiRes = await fetch(`${baseUrl}/chat/completions`, {

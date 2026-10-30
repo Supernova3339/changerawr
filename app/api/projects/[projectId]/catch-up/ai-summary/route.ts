@@ -2,7 +2,7 @@ import {NextResponse} from 'next/server';
 import {validateAuthAndGetUser} from '@/lib/utils/changelog';
 import {db} from '@/lib/db';
 import {z} from 'zod';
-import {SectonClient} from '@/lib/utils/ai/secton';
+import {HalesisClient} from '@/lib/utils/ai/halesis';
 import {AIMessage} from '@/lib/utils/ai/types';
 
 const aiSummarySchema = z.object({
@@ -150,7 +150,7 @@ export async function POST(
             // const decryptedKey = decryptToken(systemConfig.aiApiKey);
 
             // Create the AI client
-            const aiClient = new SectonClient({
+            const aiClient = new HalesisClient({
                 apiKey: systemConfig.aiApiKey,
                 defaultModel: systemConfig.aiDefaultModel || 'copilot-zero',
             });

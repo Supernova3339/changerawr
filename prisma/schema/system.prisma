@@ -48,7 +48,7 @@ model SystemConfig {
   enablePasswordReset           Boolean        @default(false)
   enableAIAssistant             Boolean        @default(false) // Enable/disable AI assistant globally
   aiApiKey                      String? // Global API key for AI service
-  aiApiProvider                 String?        @default("secton") // 'secton' | 'custom'
+  aiApiProvider                 String?        @default("halesis") // 'halesis' | 'custom'
   aiApiUrl                      String? // Custom provider base URL (e.g. http://localhost:11434/v1)
   aiDefaultModel                String?        @default("copilot-zero") // Default model to use
   smtpHost                      String?

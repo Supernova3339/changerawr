@@ -3976,7 +3976,7 @@
         "summary": "Create Suggest Tag",
         "responses": {},
         "security": [],
-        "description": "POST /api/ai/suggest-tags Priority: changelog-tagger → Secton/custom AI → 503 Body: { content: string, tags: string[] } When using changelog-tagger, tags may be empty — the tagger falls back to its own 19-tag set."
+        "description": "POST /api/ai/suggest-tags Priority: changelog-tagger → Halesis/custom AI → 503 Body: { content: string, tags: string[] } When using changelog-tagger, tags may be empty — the tagger falls back to its own 19-tag set."
       }
     },
     "/api/ai/settings": {
@@ -10084,7 +10084,7 @@
         "summary": "Create Test Key",
         "responses": {},
         "security": [],
-        "description": "POST /api/admin/ai-settings/test-key Validates an API key by hitting the /models endpoint. Works for both Secton and any OpenAI-compatible endpoint. Body: { apiKey: string, provider?: string, apiUrl?: string }"
+        "description": "POST /api/admin/ai-settings/test-key Validates an API key by hitting the /models endpoint. Works for both Halesis and any OpenAI-compatible endpoint. Body: { apiKey: string, provider?: string, apiUrl?: string }"
       }
     },
     "/api/projects/{projectId}/integrations/slack": {

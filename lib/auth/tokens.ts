@@ -3,9 +3,11 @@ import {db} from '../db';
 import {nanoid} from 'nanoid';
 import {User} from '@prisma/client';
 
-const ACCESS_SECRET = new TextEncoder().encode(
-    process.env.JWT_ACCESS_SECRET || 'your-access-secret-key'
-);
+if (!process.env.JWT_ACCESS_SECRET) {
+    throw new Error('JWT_ACCESS_SECRET environment variable is required');
+}
+
+const ACCESS_SECRET = new TextEncoder().encode(process.env.JWT_ACCESS_SECRET);
 
 export async function generateTokens(userId: string) {
     // console.log(`Generating tokens for user: ${userId}`);

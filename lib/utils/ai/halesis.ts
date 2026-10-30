@@ -1,26 +1,26 @@
 /**
- * AI Client — supports Secton cloud and any OpenAI-compatible endpoint.
+ * AI Client — supports Halesis cloud and any OpenAI-compatible endpoint.
  *
- * Response handling: Secton returns { messages: [...] }; standard OpenAI
+ * Response handling: Halesis returns { messages: [...] }; standard OpenAI
  * returns { choices: [{ message: {...} }] }. Both are normalised here.
  */
 
 import { AIError, AIMessage, AIModel, CompletionRequest, CompletionResponse } from './types';
 
-export interface SectonConfig {
+export interface HalesisConfig {
     apiKey: string;
     baseUrl?: string;
     defaultModel?: string;
 }
 
-const SECTON_BASE = 'https://api.secton.org/v1';
+const HALESIS_BASE = 'https://api.halesis.com/v1';
 
-export class SectonClient {
-    private config: SectonConfig;
+export class HalesisClient {
+    private config: HalesisConfig;
 
-    constructor(config: SectonConfig) {
+    constructor(config: HalesisConfig) {
         this.config = {
-            baseUrl: SECTON_BASE,
+            baseUrl: HALESIS_BASE,
             defaultModel: 'copilot-zero',
             ...config,
         };
@@ -69,7 +69,7 @@ export class SectonClient {
 
         const data = await res.json();
 
-        // Normalise: Secton → { messages: [...] }, OpenAI → { choices: [...] }
+        // Normalise: Halesis → { messages: [...] }, OpenAI → { choices: [...] }
         if (data.messages && Array.isArray(data.messages)) {
             return data as CompletionResponse;
         }
@@ -103,9 +103,9 @@ export class SectonClient {
     }
 }
 
-export function createSectonClient(config: SectonConfig): SectonClient {
-    return new SectonClient(config);
+export function createHalesisClient(config: HalesisConfig): HalesisClient {
+    return new HalesisClient(config);
 }
 
-/** Generic alias — use when the endpoint may not be Secton. */
-export const createAIClient = createSectonClient;
+/** Generic alias — use when the endpoint may not be Halesis. */
+export const createAIClient = createHalesisClient;

@@ -84,10 +84,17 @@ write_step "prisma-generate" "running" "Generating Prisma client"
 timeout 300 npx prisma generate
 write_step "prisma-generate" "done" "Prisma client generated"
 
-echo "🦖 Running database migrations..."
+echo "🦖 Running database migrations with automatic recovery..."
 write_step "migrations" "running" "Running database migrations"
-timeout 300 npx prisma migrate deploy
-write_step "migrations" "done" "Database migrations complete"
+# Use migration script with automatic P3009 error recovery
+chmod +x scripts/migrate-with-recovery.sh
+if timeout 300 bash scripts/migrate-with-recovery.sh; then
+    write_step "migrations" "done" "Database migrations complete"
+else
+    write_step "migrations" "error" "Database migrations failed"
+    echo "❌ Database migration failed - check logs above for details"
+    exit 1
+fi
 
 echo "🦖 Building widget..."
 write_step "widget" "running" "Building widget"

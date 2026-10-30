@@ -434,7 +434,7 @@ export function ChangelogEditor({
 
     // ===== Computed Values =====
     const aiEnabled = aiSystemSettings?.enableAIAssistant || false;
-    const sectonApiKey = aiSystemSettings?.aiApiKey || '';
+    const halesisApiKey = aiSystemSettings?.aiApiKey || '';
     const changelogTaggerConfigured = aiSystemSettings?.changelogTaggerConfigured || false;
 
     const {availableTags, mappedDefaultTags} = useMemo(() => {
@@ -1014,7 +1014,7 @@ Generated: ${new Date().toISOString()}
                 onTagsChange={handleTagsChange}
                 onTitleChange={handleTitleChange}
                 content={editorState.content}
-                aiApiKey={sectonApiKey}
+                aiApiKey={halesisApiKey}
                 changelogTaggerConfigured={changelogTaggerConfigured}
                 onLoadMoreTags={hasNextPage ? async () => {
                     await fetchNextPage();
@@ -1176,8 +1176,8 @@ Generated: ${new Date().toISOString()}
                                 "min-h-[500px]",
                                 !editorState.content.trim() && status.lastSaveError && "border-red-500"
                             )}
-                            enableAI={aiEnabled && !!sectonApiKey}
-                            aiApiKey={sectonApiKey}
+                            enableAI={aiEnabled && !!halesisApiKey}
+                            aiApiKey={halesisApiKey}
                             autoFocus={isNewChangelog && !initialContent}
                             versionHistory={entryId ? {projectId, entryId, onRestore: handleRestoreRevision} : undefined}
                         />

@@ -54,7 +54,7 @@ export async function GET() {
         const response: AISettingsResponse = {
             enableAIAssistant: config?.enableAIAssistant ?? false,
             aiApiKey: config?.aiApiKey ? true : null,
-            aiApiProvider: config?.aiApiProvider ?? 'secton',
+            aiApiProvider: config?.aiApiProvider ?? 'halesis',
             aiApiUrl: config?.aiApiUrl ?? null,
             aiDefaultModel: config?.aiDefaultModel ?? null,
             changelogTaggerUrl: config?.changelogTaggerUrl ?? null,

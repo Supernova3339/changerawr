@@ -29,7 +29,7 @@ export async function GET() {
         return NextResponse.json({
             enableAIAssistant: config?.enableAIAssistant ?? false,
             aiApiKey: encryptedApiKey,
-            aiApiProvider: config?.aiApiProvider ?? 'secton',
+            aiApiProvider: config?.aiApiProvider ?? 'halesis',
             aiApiUrl: config?.aiApiUrl ?? null,
             aiDefaultModel: config?.aiDefaultModel ?? null,
             changelogTaggerConfigured: !!config?.changelogTaggerUrl,
