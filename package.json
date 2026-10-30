@@ -33,6 +33,7 @@
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
+
   "dependencies": {
     "@changerawr/markdown": "^2.0.1",
     "@faker-js/faker": "^9.9.0",
@@ -172,6 +173,7 @@
     "@types/react-dom": "19.3.0",
     "minimatch": ">=10.2.1",
     "postcss": ">=8.5.32",
-    "sharp": ">=0.35.0"
+    "sharp": ">=0.35.0",
+    "glob": "^13.0.0"
   }
 }
