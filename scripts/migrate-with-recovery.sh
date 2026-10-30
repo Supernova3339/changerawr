@@ -22,13 +22,19 @@ run_migrations() {
             echo "$OUTPUT"
 
             # Extract the migration name from the error message
-            # P3009 error format typically includes the migration name
-            # Using POSIX-compliant grep instead of -P flag
-            MIGRATION_NAME=$(echo "$OUTPUT" | grep -o "migration.*" | head -1 | sed 's/migration //' | sed 's/[`'"'"']//g' | awk '{print $1}')
+            # P3009 error format: The `MIGRATION_NAME` migration started at...
+            # Priority 1: Look for timestamp_name format (most reliable)
+            # Pattern: 8+ digits, underscore, then alphanumeric with underscores
+            MIGRATION_NAME=$(echo "$OUTPUT" | grep -E -o "[0-9]{8,}_[a-z0-9_]+" | head -1)
 
             if [ -z "$MIGRATION_NAME" ]; then
-                # Try alternate extraction pattern - look for timestamp_name format
-                MIGRATION_NAME=$(echo "$OUTPUT" | grep -E -o "[0-9]{8,}_[a-z_]+" | head -1)
+                # Priority 2: Extract content between backticks using sed
+                MIGRATION_NAME=$(echo "$OUTPUT" | sed -n 's/.*`\([^`]*\)`.*/\1/p' | head -1)
+            fi
+
+            if [ -z "$MIGRATION_NAME" ]; then
+                # Priority 3: Try to find anything that looks like a migration directory name
+                MIGRATION_NAME=$(echo "$OUTPUT" | grep -E -o "[0-9]{14}_[^ ]*" | head -1)
             fi
 
             if [ -n "$MIGRATION_NAME" ]; then
