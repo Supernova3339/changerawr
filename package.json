@@ -91,7 +91,7 @@
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "diff": "^4.0.4",
-    "dompurify": "^3.2.4",
+    "dompurify": "^3.4.17",
     "dotenv": "^16.4.7",
     "express": "^5.2.1",
     "framer-motion": "^12.5.0",
